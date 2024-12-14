@@ -477,24 +477,26 @@ class DataTable extends HTMLElement {
                 return `<input type="checkbox" ${value == 1 || value === true ? 'checked' : ''} disabled>`;
 
             case 'fk':
-                const fkeyModels = this.#fkeysModels[colKey] || [];
                 const fkeyValues = this.#fkeys[colKey] || [];
-                const modelIndex = fkeyValues.indexOf(parseInt(value));
+                const fkeyModels = this.#fkeysModels[colKey] || [];
+                
+                // Find the index of the value in fkeyValues array
+                const modelIndex = fkeyValues.findIndex(val => val === value);
                 
                 let tooltipContent = '';
-                if (modelIndex >= 0) {
+                if (modelIndex >= 0 && fkeyModels[modelIndex]) {
                     const model = fkeyModels[modelIndex];
                     tooltipContent = Object.entries(model)
                         .filter(([key, val]) => val !== null && val !== undefined && key !== 'password')
                         .map(([key, val]) => {
-                            if (key === 'created_at') {
+                            if (key === 'created_at' || key.includes('_at')) {
                                 return `${key}: ${this.#formatTimestamp(val)}`;
                             }
                             return `${key}: ${val}`;
                         })
                         .join('\n');
                 }
-
+                
                 return `<span class="fk" data-tooltip="${tooltipContent.replace(/"/g, '&quot;')}">${value}</span>`;
 
             default:
