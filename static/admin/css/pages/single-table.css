@@ -172,7 +172,9 @@
 /* Form styles */
 .edit-form {
     padding: 1rem;
+    gap: 1rem;
 }
+
 
 .form-group {
     margin-bottom: 1rem;

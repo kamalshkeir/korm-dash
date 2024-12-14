@@ -67,6 +67,48 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initial load
     loadTableData();
 
+    // Handle import button
+    document.querySelector('.import-btn').addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv,.json';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        
+        input.click();
+        
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('thefile', file);
+            formData.append('table', tableName);
+            fetch(`${adminPath}/import`, {
+                method: 'POST',
+                body: formData
+            }).then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Notif.New({
+                        title: 'Success',
+                        message: 'Data imported successfully',
+                        type: 'success'
+                    }).show();
+                    window.location.reload();
+                } else {
+                    Notif.New({
+                        title: 'Error',
+                        message: data.error || 'Import failed',
+                        type: 'error'
+                    }).show();
+                }
+            });
+            
+            document.body.removeChild(input);
+        });
+    });
+
     search.addEventListener("submit", (e) => {
         e.preventDefault();
         page = 1;  // Reset page on new search
@@ -456,7 +498,7 @@ function generateForm(data) {
         <form class="edit-form" autocomplete="off">
             ${formFields}
             <div style="margin: 10px 0 10px 0;"></div>
-            <button class="btn" style="border-radius: 20px;" type="submit">
+            <button class="btn" style="border-radius: 10px;width:150px;margin:0 auto;" type="submit">
                 ${isEdit ? 'Save changes' : 'Create'}
             </button>
             <div style="margin: 20px 0 20px 0;"></div>

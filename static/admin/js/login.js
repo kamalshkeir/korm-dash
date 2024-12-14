@@ -3,7 +3,7 @@ function initLogin(adminPath) {
     const passwordStep = document.querySelector('#passwordStep');
     const emailInput = emailStep.querySelector('input');
     const passwordInput = passwordStep.querySelector('input');
-
+    emailInput.focus();
     // Touch handling for swipe
     let touchStartX = 0;
     let touchEndX = 0;
