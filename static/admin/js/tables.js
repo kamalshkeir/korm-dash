@@ -26,50 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     });
-
-    // Add button handlers
-    document.querySelector('.import-btn').addEventListener('click', () => {
-        // Create and trigger file input
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.csv,.json';
-        input.style.display = 'none';
-        document.body.appendChild(input);
-        
-        input.click();
-        
-        input.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('table', currentTable);
-            
-            fetch(`/${adminPath}/import`, {
-                method: 'POST',
-                body: formData
-            }).then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    Notif.New({
-                        title: 'Success',
-                        message: 'Data imported successfully',
-                        type: 'success'
-                    }).show();
-                    window.location.reload();
-                } else {
-                    Notif.New({
-                        title: 'Error',
-                        message: data.error || 'Import failed',
-                        type: 'error'
-                    }).show();
-                }
-            });
-            
-            document.body.removeChild(input);
-        });
-    });
 });
 
 function handleActionClick(e) {
