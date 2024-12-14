@@ -183,7 +183,7 @@ class AppHeader extends HTMLElement {
                 <div class="header-actions">
                     <div class="user-menu">
                         <button class="user-button" id="userMenuBtn">
-                            <span class="avatar">${avatar}</span>
+                            <span class="avatar">${avatar.toUpperCase()}</span>
                             <span class="username">${this.username || "UNKN"}</span>
                             <svg class="dropdown-icon" viewBox="0 0 24 24" width="16" height="16">
                                 <path d="M7 10l5 5 5-5z"/>
@@ -191,7 +191,7 @@ class AppHeader extends HTMLElement {
                         </button>
                         <div class="user-popup" id="userPopup">
                             <div class="popup-header">
-                                <span class="avatar">${avatar}</span>
+                                <span class="avatar">${avatar.toUpperCase()}</span>
                                 <div class="user-info">
                                     <div class="username">${this.username || "UNKN"}</div>
                                     <div class="email">${this.email || "admin@example.com"}</div>
