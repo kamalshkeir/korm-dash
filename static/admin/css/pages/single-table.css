@@ -172,9 +172,7 @@
 /* Form styles */
 .edit-form {
     padding: 1rem;
-    gap: 1rem;
 }
-
 
 .form-group {
     margin-bottom: 1rem;
@@ -445,8 +443,7 @@ textarea.editor {
 .pagination-container button {
     padding: 0.5rem 1rem;
     border: 1px solid var(--border-color);
-    background: var(--bg-gray);
-    color: #ccc;
+    background: rgb(56, 54, 54);
     border-radius: 0.375rem;
     cursor: pointer;
 }

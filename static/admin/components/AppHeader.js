@@ -52,7 +52,7 @@ class AppHeader extends HTMLElement {
                 app-header .avatar {
                     width: 36px;
                     height: 36px;
-                    background: var(--theme-color, #12449f);
+                    background: var(--primary-color, #16a34a);
                     color: white;
                     border-radius: 50%;
                     display: flex;
@@ -175,25 +175,24 @@ class AppHeader extends HTMLElement {
     render() {
         const path = window.location.pathname;
         let title = this.title || 'Dashboard';
-        // get first letter of username or email
-        const avatar = this.username ? this.username[0] : this.email[0];
+
         this.innerHTML = `
             <header class="top-header">
                 <div class="breadcrumbs">${title}</div>
                 <div class="header-actions">
                     <div class="user-menu">
                         <button class="user-button" id="userMenuBtn">
-                            <span class="avatar">${avatar.toUpperCase()}</span>
-                            <span class="username">${this.username || "UNKN"}</span>
+                            <span class="avatar">A</span>
+                            <span class="username">${this.username || "UNSET"}</span>
                             <svg class="dropdown-icon" viewBox="0 0 24 24" width="16" height="16">
                                 <path d="M7 10l5 5 5-5z"/>
                             </svg>
                         </button>
                         <div class="user-popup" id="userPopup">
                             <div class="popup-header">
-                                <span class="avatar">${avatar.toUpperCase()}</span>
+                                <span class="avatar">A</span>
                                 <div class="user-info">
-                                    <div class="username">${this.username || "UNKN"}</div>
+                                    <div class="username">${this.username || "UNSET"}</div>
                                     <div class="email">${this.email || "admin@example.com"}</div>
                                 </div>
                             </div>
@@ -208,8 +207,8 @@ class AppHeader extends HTMLElement {
                             <div class="popup-divider"></div>
                             <div class="theme-section">
                                 <div class="theme-presets">
-                                    <button class="theme-preset" data-color="#a2441f" style="background: #a2441f"></button>
-                                    <button class="theme-preset" data-color="#12449f" style="background: #12449f"></button>
+                                    <button class="theme-preset" data-color="#18181b" style="background: #18181b"></button>
+                                    <button class="theme-preset" data-color="#1e40af" style="background: #1e40af"></button>
                                     <button class="theme-preset" data-color="#166534" style="background: #166534"></button>
                                     <button class="theme-preset" data-color="#9f1239" style="background: #9f1239"></button>
                                 </div>
