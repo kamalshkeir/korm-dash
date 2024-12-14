@@ -1,0 +1,42 @@
+{{define "head"}}
+<link rel="stylesheet" href="{{.}}/admin/main.css">
+
+<!-- Components -->
+<script src="{{.}}/admin/components/NavBar.js" type="module"></script>
+<script src="{{.}}/admin/components/AppHeader.js" type="module"></script>
+<script src="{{.}}/admin/components/ThemePicker.js" type="module"></script>
+<script src="{{.}}/admin/components/SlidePanel.js" type="module"></script>
+<script src="{{.}}/admin/components/Notif.js" type="module"></script>
+<script src="{{.}}/admin/components/Ask.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Configure navigation links
+        const navLinks = [
+            {
+                href: '/admin',
+                label: 'Dashboard',
+                icon: `<svg viewBox="0 0 24 24"><path d="M13 9V3h8v6h-8ZM3 13V3h8v10H3Zm10 8V11h8v10h-8ZM3 21v-6h8v6H3Z"/></svg>`,
+                exact: true
+            },
+            {
+                href: '/admin/tables',
+                label: 'Tables',
+                icon: `<svg viewBox="0 0 24 24"><path d="M3 3h18v18H3V3Zm16 16V5H5v14h14ZM7 7h4v4H7V7Zm0 6h10v2H7v-2Zm0 4h10v2H7v-2Zm6-9h4v2h-4V8Z"/></svg>`,
+                exact: false
+            },
+            {
+                href: '/admin/logs',
+                label: 'Logs',
+                icon: `<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/><path d="M7 12h2v5H7zm8-5h2v10h-2zm-4 7h2v3h-2zm0-4h2v2h-2z"/></svg>`,
+                exact: true
+            }
+        ];
+        // Initialize navigation
+        const mainNav = document.getElementById('mainNav');
+        if (mainNav) {
+            mainNav.links = navLinks;
+        }
+    });
+</script>
+{{end}}

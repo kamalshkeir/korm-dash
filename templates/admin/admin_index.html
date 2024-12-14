@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{template "head" .static_url}}
+    <title>Admin</title>
+</head>
+<body>
+    <div class="app-layout">
+        <nav-bar id="mainNav"></nav-bar>
+        <main class="main-content">
+            <app-header title="Dashboard" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout"></app-header>
+            <div class="content-area">
+                <div class="dashboard-grid">
+                    <div class="stats-card">
+                        <h3>Total Records</h3>
+                        <p>{{.count}}</p>
+                    </div>
+                    {{if .withRequestCounter}}
+                    <div class="stats-card">
+                        <h3>API Requests</h3>
+                        <p>{{.requests}}</p>
+                    </div>
+                    {{end}}
+                    <div class="stats-card">
+                        <h3>Storage Used</h3>
+                        <p>{{.db_size}}</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="{{.static_url}}/admin/js/main.js"></script>
+</body>
+</html>

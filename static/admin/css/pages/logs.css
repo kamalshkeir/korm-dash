@@ -1,0 +1,158 @@
+/* Logs list styles */
+.logs-list {
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    margin: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.log-item {
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.log-item:hover {
+    background-color: var(--bg-gray);
+}
+
+
+.log-type {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.log-item:last-child {
+    border-bottom: none;
+}
+
+
+.log-type.INFO {
+    background-color: #dbeafe;
+    color: #2563eb;
+}
+.log-type.ERROR {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+.log-type.WARNING {
+    background-color: #edd19c;
+    color: #cf801f;
+}
+.dark-mode .log-type.WARNING {
+    background-color: rgba(255, 188, 2, 0.2);
+    color: #f5c865;
+}
+.log-type.DEBUG {
+    background-color: #dbfefc;
+    color: #52dfcf;
+}
+.dark-mode .log-type.DEBUG {
+    background-color: rgba(37, 235, 136, 0.2);
+    color: #60f2fa;
+}
+.log-type.FATAL {
+    background-color: #fbdbfe;
+    color: #a407f3;
+}
+.dark-mode .log-type.FATAL {
+    background-color: rgba(235, 37, 235, 0.2);
+    color: #fa60f7;
+}
+.dark-mode .log-type.INFO {
+    background-color: rgba(37, 99, 235, 0.2);
+    color: #60a5fa;
+}
+.dark-mode .log-type.ERROR {
+    background-color: rgba(220, 38, 38, 0.2);
+    color: #f87171;
+}
+
+
+.log-time {
+    color: var(--text-gray);
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+
+.log-message {
+    color: var(--text-gray);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+    .logs-list {
+        margin: 0.75rem;
+    }
+
+    .log-item {
+        padding: 1rem;
+    }
+}
+
+@media screen and (max-width:768px) {
+    /* Responsive logs list */
+    .logs-list {
+        margin: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .log-item {
+        padding: 0.875rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .log-time {
+        font-size: 0.75rem;
+        flex-basis: 100%;
+        order: -1;
+    }
+
+    .log-message {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .log-type {
+        padding: 0.125rem 0.5rem;
+        font-size: 0.7rem;
+    }
+}
+
+
+/* Dark mode styles */
+.dark-mode .logs-list {
+    background: #1a1a1a;
+    border-color: #2a2a2a;
+}
+
+.dark-mode .log-item {
+    border-bottom-color: #2a2a2a;
+}
+
+.dark-mode .log-item:hover {
+    background: #222222;
+}
+
+.dark-mode .log-time {
+    color: #a1a1aa;
+}
+
+.dark-mode .log-message {
+    color: #e5e5e5;
+} 

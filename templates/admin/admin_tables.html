@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{template "head" $.static_url}}
+    <link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/tables.css">
+    <title>Tables</title>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav-bar id="mainNav"></nav-bar>
+        <main class="main-content">
+            <app-header title="Tables" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout"></app-header>
+            <div class="content-area">
+                <div class="collections-list">
+                    {{range $.results}}
+                    <div class="collection-item" data-table="{{.TableName}}">
+                        <div class="collection-header">
+                            <h3>{{.TableName}}</h3>
+                            <button class="action-btn" data-table="{{.TableName}}">
+                                <svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                                </svg>
+                            </button>
+                        </div>
+                        {{if eq .TableName "users"}}
+                        <p class="collection-type">System table</p>
+                        {{else}}
+                        <p class="collection-type">Custom table</p>
+                        {{end}}
+                        <div class="collection-stats">
+                            <span>{{.Count}} records</span>
+                            <span>•</span>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        var adminPath = "{{$.admin_path}}"
+    </script>
+    <script src="{{$.static_url}}/admin/js/tables.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{template "head" $.static_url}}
+    <link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/logs.css">
+    <title>Logs</title>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav-bar id="mainNav"></nav-bar>
+        <main class="main-content">
+            <app-header title="Logs" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout"></app-header>
+            <div class="content-area">
+                <div class="logs-list">
+                    {{range .parsed}}
+                    <div class="log-item">
+                        {{if .At}}
+                        <span class="log-time">{{.At}}</span>
+                        {{end}}
+                        {{if .Type}}
+                            {{if eq .Type "N/A"}}
+                            <span class="log-type FATAL">N/A</span>
+                            {{else}}
+                            <span class="log-type {{.Type}}">{{.Type}}</span>
+                            {{end}}
+                        {{else}}
+                        <span class="log-type FATAL">N/A</span>
+                        {{end}}
+                        <span class="log-message">{{.Extra}}</span>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="{{$.static_url}}/admin/js/main.js"></script>
+</body>
+
+</html>

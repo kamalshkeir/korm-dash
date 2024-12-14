@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{template "head" $.static_url}}
+    <link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/login.css">
+    <title>Login - Admin</title>
+    <script>
+        // Check darkMode instead of theme to match dashboard
+        const isDark = localStorage.getItem('darkMode') === 'true';
+        document.documentElement.classList.toggle('dark', isDark);
+    </script>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h1>KORM</h1>
+                <h2>Superuser login</h2>
+            </div>
+            <form class="login-form">
+                <div id="emailStep" class="step active">
+                    <input type="email" placeholder="Email" required autocomplete="off" autocorrect="off"
+                        autocapitalize="off" spellcheck="false" data-form-type="email" readonly
+                        onfocus="this.removeAttribute('readonly');">
+                    <span class="required">*</span>
+                </div>
+                <div id="passwordStep" class="step">
+                    <input type="password" placeholder="Password" required autocomplete="new-password" autocorrect="off"
+                        autocapitalize="off" spellcheck="false" data-form-type="password" readonly
+                        onfocus="this.removeAttribute('readonly');">
+                    <span class="required">*</span>
+                    <small class="hint">
+                        <span class="desktop-hint">Press Shift+Tab to go back</span>
+                        <span class="mobile-hint">Swipe right to go back</span>
+                    </small>
+                    <button type="submit" class="submit-btn">
+                        <span>Login</span>
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13.75 6.75L19.25 12L13.75 17.25" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M19 12H4.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{$.static_url}}/admin/js/login.js"></script>
+    <script>
+        const handleSubmitLogin = initLogin("{{$.admin_path}}");
+        document.querySelector('.login-form').onsubmit = handleSubmitLogin;
+    </script>
+</body>
+
+</html>
