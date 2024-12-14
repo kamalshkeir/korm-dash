@@ -1,3 +1,5 @@
+import Tooltip from './Tooltip.js';
+
 class DataTable extends HTMLElement {
     #data = [];
     #columns = [];
@@ -551,33 +553,17 @@ class DataTable extends HTMLElement {
 
         // Setup tooltips for foreign keys
         this.shadowRoot.querySelectorAll('.fk').forEach(fk => {
-            fk.addEventListener('mouseenter', (e) => {
-                const tooltip = document.createElement('div');
-                tooltip.className = 'tooltip';
-                tooltip.innerHTML = fk.dataset.tooltip.split('\n').join('<br>');
-                tooltip.style.left = `${e.pageX + 10}px`;
-                tooltip.style.top = `${e.pageY + 10}px`;
-                this.shadowRoot.appendChild(tooltip);
-            });
-
-            fk.addEventListener('mouseleave', () => {
-                this.shadowRoot.querySelectorAll('.tooltip').forEach(t => t.remove());
+            new Tooltip(fk, {
+                allowHtml: true,
+                className: 'fk-tooltip'
             });
         });
 
-        // Add tooltip handling for truncated cells
+        // Setup tooltips for truncated cells
         this.shadowRoot.querySelectorAll('.truncated-cell').forEach(cell => {
-            cell.addEventListener('mouseenter', (e) => {
-                const tooltip = document.createElement('div');
-                tooltip.className = 'content-tooltip';
-                tooltip.textContent = cell.dataset.content;
-                tooltip.style.left = `${e.pageX + 10}px`;
-                tooltip.style.top = `${e.pageY + 10}px`;
-                this.shadowRoot.appendChild(tooltip);
-            });
-
-            cell.addEventListener('mouseleave', () => {
-                this.shadowRoot.querySelectorAll('.content-tooltip').forEach(t => t.remove());
+            new Tooltip(cell, {
+                className: 'content-tooltip',
+                maxWidth: 400
             });
         });
     }
