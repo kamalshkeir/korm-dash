@@ -87,6 +87,8 @@ class ask extends HTMLElement {
         }
     `;
 
+    static instance = null;
+
     constructor() {
         super();
         this._message = '';
@@ -116,6 +118,10 @@ class ask extends HTMLElement {
     }
 
     show() {
+        if (ask.instance) {
+            ask.instance.remove();
+        }
+        ask.instance = this;
         document.body.appendChild(this);
     }
 
@@ -124,9 +130,15 @@ class ask extends HTMLElement {
             this.modal.classList.remove('open');
             setTimeout(() => {
                 super.remove();
+                if (ask.instance === this) {
+                    ask.instance = null;
+                }
             }, 200);
         } else {
             super.remove();
+            if (ask.instance === this) {
+                ask.instance = null;
+            }
         }
     }
 
@@ -142,25 +154,32 @@ class ask extends HTMLElement {
 customElements.define("k-ask", ask);
 
 async function Ask(message) {
+    if (ask.instance) {
+        ask.instance.remove();
+    }
+
     return new Promise((resolve) => {
         let a = new ask();
         a.message = message;
         a.show();
         
+        const handleResponse = (response) => {
+            a.remove();
+            resolve(response);
+        };
+
         requestAnimationFrame(() => {
             const cancelBtn = a.shadowRoot.querySelector(".footer .cancel");
             const confirmBtn = a.shadowRoot.querySelector(".footer .confirm");
             
             cancelBtn.addEventListener("click", (e) => {
                 e.preventDefault();
-                a.remove();
-                resolve(false);
+                handleResponse(false);
             });
             
             confirmBtn.addEventListener("click", (e) => {
                 e.preventDefault();
-                a.remove();
-                resolve(true);
+                handleResponse(true);
             });
         });
     });
