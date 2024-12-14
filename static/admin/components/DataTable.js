@@ -145,7 +145,7 @@ class DataTable extends HTMLElement {
                 /* Selection bar */
                 .selection-bar {
                     position: fixed;
-                    bottom: 20px;
+                    bottom: 30px;
                     left: 50%;
                     transform: translateX(-50%);
                     background: var(--theme-color);
@@ -160,6 +160,16 @@ class DataTable extends HTMLElement {
                     opacity: 0;
                     visibility: hidden;
                     transition: all 0.2s ease;
+                }
+
+                @media (max-width: 768px) {
+                    .selection-bar {
+                        bottom: 70px;
+                    }
+
+                    .selection-bar .actions{
+                        display:flex;
+                    }
                 }
 
                 .selection-bar.show {
@@ -204,6 +214,7 @@ class DataTable extends HTMLElement {
 
                 :host-context(.dark-mode) .data-table td {
                     border-bottom-color: #2a2a2a;
+                    height: 40px;
                 }
 
                 :host-context(.dark-mode) .data-table tbody tr:hover {
@@ -213,6 +224,10 @@ class DataTable extends HTMLElement {
                 .data-table td img {
                     max-height: 50px;
                     border-radius: 4px;
+                }
+
+                .selected-count {
+                    white-space: nowrap;
                 }
 
                 .data-table td.fk {
@@ -299,6 +314,54 @@ class DataTable extends HTMLElement {
                     margin-left: 0.5rem;
                     opacity: 0.7;
                 }
+
+                /* Add these new styles */
+                .truncated-cell {
+                    max-width: 200px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    cursor: help;
+                }
+
+                td {
+                    max-width: 200px; /* Consistent max-width for all cells */
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                /* Style for content columns (like WYSIWYG fields) */
+                td[data-column="content"],
+                td[data-column="description"],
+                td[data-column="text"] {
+                    max-width: 300px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                /* Tooltip styles */
+                .content-tooltip {
+                    position: fixed;
+                    background: #333;
+                    color: white;
+                    padding: 0.75rem 1rem;
+                    border-radius: 0.375rem;
+                    font-size: 0.875rem;
+                    z-index: 10000;
+                    pointer-events: none;
+                    max-width: 400px;
+                    white-space: normal;
+                    line-height: 1.4;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                }
+
+                /* Dark mode tooltip */
+                :host-context(.dark-mode) .content-tooltip {
+                    background: #1a1a1a;
+                    border: 1px solid #2a2a2a;
+                }
             </style>
         `;
     }
@@ -368,7 +431,7 @@ class DataTable extends HTMLElement {
                                 <input type="checkbox" class="select-all">
                             </th>
                             ${this.#columns.map(col => `
-                                <th ${col.type === 'timestamp' ? `class="timestamp" data-column="${col.key}" data-format="${this.#columnTimeFormats.get(col.key) ? '🕒' : '📅'}"` : ''}>${col.label}</th>
+                                <th ${col.type === 'timestamp' ? `class="timestamp" data-column="${col.key}" data-format="${this.#columnTimeFormats.get(col.key) ? '🕒' : '📅'}"` : `data-column="${col.key}"`}>${col.label}</th>
                             `).join('')}
                         </tr>
                     </thead>
@@ -379,7 +442,7 @@ class DataTable extends HTMLElement {
                                     <input type="checkbox" class="row-checkbox">
                                 </td>
                                 ${this.#columns.map(col => `
-                                    <td>${this.formatCell(row[col.key], col.type, col.key)}</td>
+                                    <td data-column="${col.key}">${this.formatCell(row[col.key], col.type, col.key)}</td>
                                 `).join('')}
                             </tr>
                         `).join('')}
@@ -433,12 +496,23 @@ class DataTable extends HTMLElement {
                 }
 
                 return `<span class="fk" data-tooltip="${tooltipContent.replace(/"/g, '&quot;')}">${value}</span>`;
-        }
 
-        if (typeof value === 'string' && value.length > 50) {
-            return `<span title="${value.replace(/"/g, '&quot;')}">${value.substring(0, 50)}...</span>`;
+            default:
+                // Handle text content, including WYSIWYG editor content
+                if (typeof value === 'string') {
+                    // Strip HTML tags for WYSIWYG content
+                    const cleanText = value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                    
+                    // Add data-content attribute to store full text for tooltips
+                    if (cleanText.length > 50) {
+                        return `<div class="truncated-cell" data-content="${cleanText.replace(/"/g, '&quot;')}">
+                            ${cleanText.substring(0, 50)}...
+                        </div>`;
+                    }
+                    return cleanText;
+                }
+                return value;
         }
-        return value;
     }
 
     setupEventListeners() {
@@ -486,6 +560,22 @@ class DataTable extends HTMLElement {
 
             fk.addEventListener('mouseleave', () => {
                 this.shadowRoot.querySelectorAll('.tooltip').forEach(t => t.remove());
+            });
+        });
+
+        // Add tooltip handling for truncated cells
+        this.shadowRoot.querySelectorAll('.truncated-cell').forEach(cell => {
+            cell.addEventListener('mouseenter', (e) => {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'content-tooltip';
+                tooltip.textContent = cell.dataset.content;
+                tooltip.style.left = `${e.pageX + 10}px`;
+                tooltip.style.top = `${e.pageY + 10}px`;
+                this.shadowRoot.appendChild(tooltip);
+            });
+
+            cell.addEventListener('mouseleave', () => {
+                this.shadowRoot.querySelectorAll('.content-tooltip').forEach(t => t.remove());
             });
         });
     }
@@ -624,6 +714,12 @@ class DataTable extends HTMLElement {
 
     get pk() {
         return this.#pk;
+    }
+
+    // Add this method to detect WYSIWYG/content columns
+    #isContentColumn(colKey) {
+        const contentKeywords = ['content', 'description', 'text', 'body', 'wysiwyg'];
+        return contentKeywords.some(keyword => colKey.toLowerCase().includes(keyword));
     }
 }
 
