@@ -52,7 +52,7 @@ class AppHeader extends HTMLElement {
                 app-header .avatar {
                     width: 36px;
                     height: 36px;
-                    background: var(--primary-color, #16a34a);
+                    background: var(--theme-color, #12449f);
                     color: white;
                     border-radius: 50%;
                     display: flex;
@@ -175,24 +175,25 @@ class AppHeader extends HTMLElement {
     render() {
         const path = window.location.pathname;
         let title = this.title || 'Dashboard';
-
+        // get first letter of username or email
+        const avatar = this.username ? this.username[0] : this.email[0];
         this.innerHTML = `
             <header class="top-header">
                 <div class="breadcrumbs">${title}</div>
                 <div class="header-actions">
                     <div class="user-menu">
                         <button class="user-button" id="userMenuBtn">
-                            <span class="avatar">A</span>
-                            <span class="username">${this.username || "UNSET"}</span>
+                            <span class="avatar">${avatar}</span>
+                            <span class="username">${this.username || "UNKN"}</span>
                             <svg class="dropdown-icon" viewBox="0 0 24 24" width="16" height="16">
                                 <path d="M7 10l5 5 5-5z"/>
                             </svg>
                         </button>
                         <div class="user-popup" id="userPopup">
                             <div class="popup-header">
-                                <span class="avatar">A</span>
+                                <span class="avatar">${avatar}</span>
                                 <div class="user-info">
-                                    <div class="username">${this.username || "UNSET"}</div>
+                                    <div class="username">${this.username || "UNKN"}</div>
                                     <div class="email">${this.email || "admin@example.com"}</div>
                                 </div>
                             </div>
