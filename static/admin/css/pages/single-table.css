@@ -32,6 +32,8 @@
     background: white;
     font-size: 0.875rem;
     transition: all 0.2s;
+    color: black;
+    font-weight: 500;
 }
 
 .table-container {
@@ -68,28 +70,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 200px;
-}
-
-/* Status badges */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-}
-
-.status-badge.published {
-    background: #dcfce7;
-    color: var(--theme-color);
-}
-
-.status-badge.draft {
-    background: #f3f4f6;
-    color: #374151;
 }
 
 /* Dark mode styles */
@@ -161,22 +141,20 @@
     border-color: #2a2a2a;
 }
 
-.dark-mode .dropdown-item {
-    color: #e5e5e5;
-}
-
-.dark-mode .dropdown-item:hover {
-    background: #222222;
-}
 
 /* Form styles */
 .edit-form {
-    padding: 1rem;
+    padding: 1.2rem;
     gap: 1rem;
 }
 
-
 .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: #18181b;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
     margin-bottom: 1rem;
 }
 
@@ -185,6 +163,20 @@
     margin-bottom: 0.5rem;
     font-weight: 500;
     color: var(--text-gray);
+    font-size: .9rem;
+}
+
+.form-group label svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    opacity: 0.8;
+}
+
+.form-group label.required::after {
+    content: '*';
+    color: #ef4444;
+    margin-left: 0.25rem;
 }
 
 .form-control {
@@ -194,6 +186,54 @@
     border-radius: 0.5rem;
     background: white;
     font-size: 0.875rem;
+}
+.form-group input,
+.form-group select {
+    padding: 0.75rem;
+    border: 1px solid #27272a;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    background: #27272a;
+    color: #f1f5f9;
+    transition: all 0.15s;
+    width: 100%;
+    min-height: 42px;
+}
+
+.form-group input:hover,
+.form-group select:hover {
+    border-color: #3f3f46;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.form-group input::placeholder {
+    color: #475569;
+}
+
+/* File input styling */
+.form-group input[type="file"] {
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    min-height: auto;
+}
+
+.form-group input[type="file"]:hover {
+    background: transparent;
+    border: none;
+}
+
+.form-group input[type="file"]:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
 }
 
 textarea.editor {
@@ -448,10 +488,11 @@ textarea.editor {
     background: rgb(56, 54, 54);
     border-radius: 0.375rem;
     cursor: pointer;
+    color: white;
 }
 
 .pagination-container button:hover {
-    background: var(--bg-gray);
+    background: rgb(31, 31, 31);
 }
 
 .current-page {

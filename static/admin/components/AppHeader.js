@@ -13,11 +13,14 @@ class AppHeader extends HTMLElement {
                 app-header .top-header {
                     height: var(--header-height, 64px);
                     padding: 0 1.5rem;
-                    background: white;
+                    background: rgba(255, 255, 255, 0.7);
                     border-bottom: 1px solid var(--border-color, #e2e8f0);
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
                 }
 
                 app-header .breadcrumbs {
@@ -47,6 +50,13 @@ class AppHeader extends HTMLElement {
                     cursor: pointer;
                     border-radius: 0.5rem;
                     color: var(--text-gray, #64748b);
+                    transition: all 0.2s ease;
+                    position: relative;
+                    z-index: 1001;
+                }
+
+                .user-button:hover {
+                    color: var(--theme-color,#12449f);
                 }
 
                 app-header .avatar {
@@ -60,6 +70,11 @@ class AppHeader extends HTMLElement {
                     justify-content: center;
                     font-weight: 600;
                     font-size: 0.875rem;
+                    transition: transform 0.2s ease;
+                }
+
+                .user-button:hover .avatar {
+                    transform: scale(1.05);
                 }
 
                 app-header .dropdown-icon {
@@ -90,6 +105,7 @@ class AppHeader extends HTMLElement {
                     opacity: 1;
                     visibility: visible;
                     transform: translateY(0);
+                    z-index: 1002;
                 }
 
                 @media (max-width: 768px) {
@@ -100,10 +116,19 @@ class AppHeader extends HTMLElement {
 
                     app-header .breadcrumbs {
                         font-size: 1rem;
+                        max-width: 200px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
                     }
 
                     app-header .username {
                         display: none;
+                    }
+
+                    .user-popup {
+                        width: 200px;
+                        right: 0.5rem;
                     }
                 }
 
@@ -112,6 +137,236 @@ class AppHeader extends HTMLElement {
                     display: flex;
                     align-items: center;
                     gap: 1rem;
+                }
+                /* Theme picker styles */
+                .theme-picker {
+                    position: relative;
+                    margin-right: 1rem;
+                }
+
+                .theme-button {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.5rem 0.75rem;
+                    background: var(--theme-color);
+                    color: white;
+                    border: none;
+                    border-radius: 0.5rem;
+                    cursor: pointer;
+                    font-size: 0.875rem;
+                    transition: all 0.2s;
+                }
+
+                .theme-button:hover {
+                    background: var(--theme-color-hover);
+                }
+
+                .theme-popup {
+                    position: absolute;
+                    top: 100%;
+                    right: 0;
+                    margin-top: 0.5rem;
+                    background: white;
+                    border: 1px solid var(--border-color);
+                    border-radius: 0.5rem;
+                    padding: 1rem;
+                    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                    display: none;
+                    z-index: 1000;
+                }
+
+                .theme-popup.show {
+                    display: block;
+                }
+
+                .color-picker {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                    margin-bottom: 1rem;
+                }
+
+                .color-picker input {
+                    width: 100%;
+                    height: 40px;
+                    padding: 0;
+                    border: 1px solid var(--border-color);
+                    border-radius: 0.25rem;
+                    cursor: pointer;
+                }
+
+                .color-picker label {
+                    font-size: 0.875rem;
+                    color: var(--text-gray);
+                }
+
+                .theme-presets {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 0.5rem;
+                }
+
+                .preset {
+                    padding: 0.5rem;
+                    border: none;
+                    border-radius: 0.25rem;
+                    color: white;
+                    cursor: pointer;
+                    font-size: 0.75rem;
+                    transition: opacity 0.2s;
+                }
+
+                .preset:hover {
+                    opacity: 0.9;
+                }
+
+                /* Theme presets styles */
+                .theme-section {
+                    padding: 0.75rem 1rem;
+                }
+
+                .theme-presets {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 0.5rem;
+                }
+
+                .theme-preset {
+                    width: 24px;
+                    height: 24px;
+                    border: none;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    transition: transform 0.2s;
+                }
+
+                .theme-preset:hover {
+                    transform: scale(1.1);
+                }
+
+                /* Dark mode toggle styles */
+                .theme-mode-toggle {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    padding: 0.75rem 1rem;
+                }
+
+                .switch {
+                    position: relative;
+                    display: inline-block;
+                    width: 40px;
+                    height: 24px;
+                }
+
+                .switch input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                }
+
+                .slider {
+                    position: absolute;
+                    cursor: pointer;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: #ccc;
+                    transition: .4s;
+                    border-radius: 24px;
+                }
+
+                .slider:before {
+                    position: absolute;
+                    content: "";
+                    height: 16px;
+                    width: 16px;
+                    left: 4px;
+                    bottom: 4px;
+                    background-color: white;
+                    transition: .4s;
+                    border-radius: 50%;
+                }
+
+                input:checked + .slider {
+                    background-color: var(--theme-color);
+                }
+
+                input:checked + .slider:before {
+                    transform: translateX(16px);
+                }
+                .dark-mode .nav-item:hover,
+                .dark-mode .nav-item.active {
+                    background: var(--theme-color);
+                    color: white;
+                }
+
+                .dark-mode .breadcrumbs {
+                    color: #e5e5e5;
+                }
+                .popup-header {
+                    padding: 1rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                }
+
+                .user-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.25rem;
+                }
+
+                .user-info .email {
+                    font-size: 0.875rem;
+                    color: var(--text-gray);
+                }
+
+                .popup-divider {
+                    height: 1px;
+                    background: var(--border-color);
+                    margin: 0.5rem 0;
+                }
+
+                .popup-divider:last-of-type {
+                    margin-bottom: 0;
+                }
+
+                .popup-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    padding: 0.75rem 1rem;
+                    color: var(--text-gray);
+                    text-decoration: none;
+                    transition: background-color 0.2s;
+                }
+
+                .popup-item:hover {
+                    background: rgba(90, 87, 87, 0.3);
+                    color: rgb(152, 44, 44);
+                }
+
+                .popup-item svg {
+                    fill: currentColor;
+                }
+
+                /* Add click-outside overlay */
+                .popup-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: transparent;
+                    display: none;
+                }
+
+                .popup-overlay.show {
+                    display: block;
+                }
+
+                .dark-mode .user-popup {
+                    background: #1a1a1a;
                 }
             </style>
         `;
@@ -139,7 +394,7 @@ class AppHeader extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ["title","username","email","logout"];
+        return ["title", "username", "email", "logout"];
     }
 
     get title() {

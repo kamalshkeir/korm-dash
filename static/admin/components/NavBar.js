@@ -2,6 +2,7 @@ class NavBar extends HTMLElement {
     constructor() {
         super();
         this._links = [];
+        this.classList.add('sidebar', 'collapsed');
     }
 
     get links() {
@@ -14,13 +15,14 @@ class NavBar extends HTMLElement {
     }
 
     connectedCallback() {
-        this.classList.add('sidebar');
         if (!document.getElementById('nav-bar-styles')) {
             const styleSheet = document.createElement('div');
             styleSheet.id = 'nav-bar-styles';
             styleSheet.innerHTML = NavBar.defaultStyles;
             document.head.appendChild(styleSheet);
         }
+        document.querySelector('.main-content')?.classList.add('full-width');
+        
         this.render();
         this.setupEventListeners();
     }
@@ -55,23 +57,21 @@ class NavBar extends HTMLElement {
     }
 
     setupEventListeners() {
-        // Handle click outside to collapse sidebar on desktop
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth > 768) {
-                if (!this.contains(e.target)) {
-                    this.classList.add('collapsed');
-                    document.querySelector('.main-content')?.classList.add('full-width');
-                }
-            }
-        });
-
         // Handle click on sidebar to expand
         this.addEventListener('click', (e) => {
             if (window.innerWidth > 768) {
-                if (this.classList.contains('collapsed')) {
-                    this.classList.remove('collapsed');
-                    document.querySelector('.main-content')?.classList.remove('full-width');
-                    e.stopPropagation();
+                this.classList.toggle('expanded');
+                document.querySelector('.main-content')?.classList.toggle('full-width');
+                e.stopPropagation();
+            }
+        });
+
+        // Handle click outside to collapse
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth > 768) {
+                if (!this.contains(e.target)) {
+                    this.classList.remove('expanded');
+                    document.querySelector('.main-content')?.classList.add('full-width');
                 }
             }
         });
@@ -81,7 +81,7 @@ class NavBar extends HTMLElement {
         return `
             <style>
                 nav-bar {
-                    width: var(--sidebar-width, 270px);
+                    width: 70px;  /* Default collapsed state */
                     background: white;
                     border-right: 1px solid var(--border-color, #e2e8f0);
                     display: flex;
@@ -92,13 +92,27 @@ class NavBar extends HTMLElement {
                     transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1);
                 }
 
-                nav-bar.collapsed {
-                    width: 70px;
+                nav-bar .nav-item span {
+                    opacity: 0;
+                    width: 0;
+                    position: absolute;
+                    pointer-events: none;
+                    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                nav-bar.expanded {
+                    width: var(--sidebar-width, 270px);
+                }
+
+                nav-bar.expanded .nav-item span {
+                    opacity: 1;
+                    width: auto;
+                    position: static;
+                    pointer-events: auto;
                 }
 
                 nav-bar .sidebar-header {
                     height: var(--header-height, 64px);
-                    padding: 0 1.5rem;
                     border-bottom: 1px solid var(--border-color, #e2e8f0);
                     display: flex;
                     align-items: center;
@@ -145,17 +159,34 @@ class NavBar extends HTMLElement {
 
                 nav-bar.collapsed .nav-item {
                     padding: 0.75rem;
-                    justify-content: center;
                 }
 
-                nav-bar.collapsed .nav-item span {
-                    opacity: 0;
-                    width: 0;
-                    position: absolute;
-                    pointer-events: none;
+                /* Update logo styles */
+                .logo-text {
+                    font-size: 24px;
+                    font-weight: 900;
+                    color: var(--theme-color);
+                    margin-left: 20px;
+                    letter-spacing: 1px;
+                    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                /* Update for collapsed sidebar */
+                .sidebar.collapsed .logo-text {
+                    font-size: 20px;
+                    margin-left: 0px;
+                    transform: scale(0.8);
+                }
+
+                /* Dark mode logo */
+                html.dark .logo-text {
+                    color: #fff;
                 }
 
                 @media (max-width: 768px) {
+                    nav-bar.collapsed .nav-item {
+                        padding: 0;
+                    }
                     nav-bar {
                         position: fixed;
                         top: auto;
@@ -180,6 +211,7 @@ class NavBar extends HTMLElement {
 
                     nav-bar .sidebar-nav ul {
                         display: flex;
+                        justify-content: space-around;
                         flex-direction: row;
                         gap: 0;
                         height: 100%;
@@ -198,6 +230,7 @@ class NavBar extends HTMLElement {
                         border-radius: 0;
                         gap: 0.25rem;
                         width: 100%;
+                        position: relative;
                     }
 
                     nav-bar li {
@@ -206,15 +239,23 @@ class NavBar extends HTMLElement {
                     }
 
                     nav-bar .nav-item svg {
-                        width: 20px;
-                        height: 20px;
+                        width: 24px;
+                        height: 24px;
+                        transition: transform 0.3s ease;
                     }
 
                     nav-bar .nav-item span {
                         font-size: 0.75rem;
+                        font-weight: 500;
+                        position: absolute;
+                        bottom: 2px;
+                        opacity: 0;
+                        transform: translateY(5px);
+                        transition: all 0.3s ease;
+                    }
+                     .nav-item:hover span {
                         opacity: 1;
-                        position: static;
-                        width: auto;
+                        transform: translateY(0);
                     }
 
                     nav-bar .nav-item:hover,
@@ -228,6 +269,9 @@ class NavBar extends HTMLElement {
                         opacity: 1;
                         position: static;
                         width: auto;
+                    }
+                    .logo-text {
+                        font-size: 20px;
                     }
                 }
             </style>

@@ -254,45 +254,41 @@ document.addEventListener("DOMContentLoaded", () => {
                 setupImagePreviews();
                 setupJoditEditor(panel);
 
-                // Track changed fields
-                const changedFields = new Set();
+                // Handle ADD ROW - simplified without change tracking
                 const form = panel.querySelector('form');
-
-                // Add change listeners to all inputs
-                form.querySelectorAll('input, textarea').forEach(input => {
-                    input.addEventListener('change', () => {
-                        const name = input.getAttribute('name');
-                        if (name) changedFields.add(name);
-                    });
-                });
-
-                // Handle ADD ROW
                 form?.addEventListener('submit', (e) => {
                     e.preventDefault();
                     let data = new FormData();
 
-                    // Only add changed fields to FormData
-                    changedFields.forEach(fieldName => {
-                        const input = form.querySelector(`[name="${fieldName}"]`);
-                        if (!input) return;
+                    // Process all form inputs with proper type handling
+                    form.querySelectorAll('input, textarea').forEach(input => {
+                        const name = input.getAttribute('name');
+                        if (name) {
+                            // Add debug logging for speciality field
+                            if (name === 'speciality' || name === 'city') {
+                                console.log(`${name} value: "${input.value}"`);
+                                console.log(`${name} value length:`, input.value.length);
+                                console.log(`${name} value bytes:`, Array.from(input.value).map(c => c.charCodeAt(0)));
+                            }
 
-                        if (input.type === "file") {
-                            if (input.files[0]) {
-                                data.set(fieldName, input.files[0]);
+                            if (input.type === "file") {
+                                if (input.files[0]) {
+                                    data.set(name, input.files[0]);
+                                }
+                            } else if (input.type === "datetime-local") {
+                                let val = Date.parse(input.value).toString().substring(0, 10);
+                                if (!isNaN(val)) {
+                                    data.set(name, val);
+                                }
+                            } else if (input.type === "checkbox") {
+                                data.set(name, input.checked ? Number(1) : Number(0));
+                            } else {
+                                data.set(name, input.value);
                             }
-                        } else if (input.type === "datetime-local") {
-                            let val = Date.parse(input.value).toString().substring(0, 10);
-                            if (!isNaN(val)) {
-                                data.set(fieldName, val);
-                            }
-                        } else if (input.type === "checkbox") {
-                            data.set(fieldName, input.checked ? Number(1) : Number(0));
-                        } else {
-                            data.set(fieldName, input.value);
                         }
                     });
-
-                    // Add required fields
+                    
+                    // Add required field
                     data.set("table", tableName);
 
                     // Send the request
@@ -300,26 +296,26 @@ document.addEventListener("DOMContentLoaded", () => {
                         method: 'POST',
                         body: data
                     })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.success) {
-                                Notif.New({
-                                    title: 'Success',
-                                    message: 'Record created successfully',
-                                    type: 'success',
-                                    duration: 3000
-                                }).show()
-                                closePanel(panel);
-                                if (result.inserted) {
-                                    table.data = [result.inserted, ...table.data];
-                                }
-                            } else {
-                                console.error('Error creating record:', result.error);
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            Notif.New({
+                                title: 'Success',
+                                message: 'Record created successfully',
+                                type: 'success',
+                                duration: 3000
+                            }).show()
+                            closePanel(panel);
+                            if (result.inserted) {
+                                table.data = [result.inserted, ...table.data];
                             }
-                        })
-                        .catch(error => {
-                            console.error('Error submitting form:', error);
-                        });
+                        } else {
+                            console.error('Error creating record:', result.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error submitting form:', error);
+                    });
                 });
             }
         });
@@ -417,8 +413,17 @@ function generateForm(data) {
         // Add readonly attribute and onfocus handler to text inputs
         const readOnlyAttr = 'readonly onfocus="this.removeAttribute(\'readonly\')"';
 
-        // Handle different field types
-        if (fkeys && fkeys[col]) {
+        // Generate UUID for UUID fields in create mode
+        if (!isEdit && col.toLowerCase().includes('uuid')) {
+            input = `<input type="text" id="${col}" name="${col}" class="form-control input" value="${crypto.randomUUID()}" readonly>`;
+        } else if (fkeys && fkeys[col]) {
+            // Add debug logging for the database values
+            console.log(`Database values for ${col}:`, fkeys[col].map(v => ({
+                value: v,
+                length: v.length,
+                bytes: Array.from(v).map(c => c.charCodeAt(0))
+            })));
+
             input = `
                 <input type="text" class="form-control input" 
                     name="${col}" id="${col}" 

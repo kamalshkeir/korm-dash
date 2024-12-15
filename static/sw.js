@@ -1,27 +1,13 @@
 const STATIC_CACHE_NAME = "static-v1";
-const DYNAMIC_CACHE_NAME = "dynamic-v1";
+const DYNAMIC_CACHE_NAME = `dynamic-${new Date().getTime()}`;
 const STATIC_FILES = [
     //admin
     "/static/admin/192.png",
     "/static/admin/144.png",
     "/static/admin/465.png",
     "/static/admin/main.css",
-    "/static/admin/components/AppHeader.js",
-    "/static/admin/components/Ask.js",
-    "/static/admin/components/auto.js",
-    "/static/admin/components/DataTable.js",
     "/static/admin/components/jodit_editor.min.css",
     "/static/admin/components/jodit_editor.min.js",
-    "/static/admin/components/Modal.js",
-    "/static/admin/components/NavBar.js",
-    "/static/admin/components/Notif.js",
-    "/static/admin/components/SlidePanel.js",
-    "/static/admin/components/ThemePicker.js",
-    "/static/admin/components/Tooltip.js",
-    "/static/admin/js/tables.js",
-    "/static/admin/js/single_table.js",
-    "/static/admin/js/login.js",
-    "/static/admin/js/main.js",
     "/static/admin/css/pages/logs.css",
     "/static/admin/css/pages/login.css",
     "/static/admin/css/pages/tables.css",
@@ -78,7 +64,14 @@ self.addEventListener("fetch", e => {
     if(!(e.request.url.indexOf('http') === 0)) return; //ignore chrome flags
     if(e.request.method != "GET") return; // accept only get methods
 
-    if (isInArray(e.request.url,STATIC_FILES)) {
+    // Skip caching for API routes and dynamic content
+    if (e.request.url.includes('/availabilities') || 
+        e.request.url.includes('/scheduler')) {
+        e.respondWith(fetch(e.request));
+        return;
+    }
+
+    if (isInArray(e.request.url, STATIC_FILES)) {
         e.respondWith(
             caches.match(e.request)
         );
@@ -91,7 +84,6 @@ self.addEventListener("fetch", e => {
                     cache.put(e.request.url, clone).catch(err => _=err);
                 })
                 return res;
-                
             }).catch(() => {
                 const res = caches.match(e.request);
                 if (res) {
@@ -102,7 +94,6 @@ self.addEventListener("fetch", e => {
             })
         );
     }
- 
 });
 
 

@@ -4,18 +4,19 @@ function initLogin(adminPath) {
     const emailInput = emailStep.querySelector('input');
     const passwordInput = passwordStep.querySelector('input');
     emailInput.focus();
-    // Touch handling for swipe
+
+    // Touch handling for swipe - simplified
     let touchStartX = 0;
     let touchEndX = 0;
     
     document.addEventListener('touchstart', e => {
         touchStartX = e.changedTouches[0].screenX;
-    }, false);
+    }, { passive: true });  // Add passive flag for better performance
     
     document.addEventListener('touchend', e => {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
-    }, false);
+    }, { passive: true });
     
     function handleSwipe() {
         const swipeThreshold = 50; // minimum distance for swipe

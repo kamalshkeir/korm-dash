@@ -4,7 +4,7 @@
     "description":"Korm pwa app",
     "orientation": "portrait-primary",
     "lang":"en",
-    "start_url":"/",
+    "start_url":"/admin",
     "background_color":"#efefef",
     "theme_color":"#0e0e0e",
     "display":"standalone",

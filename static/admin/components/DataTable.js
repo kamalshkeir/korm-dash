@@ -133,6 +133,7 @@ class DataTable extends HTMLElement {
                     text-transform: uppercase;
                     letter-spacing: 0.025em;
                 }
+                    
 
                 .status-badge.published {
                     background: #dcfce7;
@@ -165,12 +166,21 @@ class DataTable extends HTMLElement {
                 }
 
                 @media (max-width: 768px) {
+                    .table-header {
+                        padding: 0 1rem;
+                        margin-bottom: 0.75rem;
+                    }
                     .selection-bar {
                         bottom: 70px;
                     }
 
                     .selection-bar .actions{
                         display:flex;
+                    }
+                    .status-badge {
+                        padding: 0.25rem 0.5rem;
+                        font-size: 0.7rem;
+                        white-space:nowrap;
                     }
                 }
 
@@ -371,7 +381,7 @@ class DataTable extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-        
+
         // Create selection bar
         this.#selectionBar = document.createElement('div');
         this.#selectionBar.className = 'selection-bar';
@@ -400,10 +410,10 @@ class DataTable extends HTMLElement {
         }
         // Store the data
         this.#data = value;
-        
+
         // Render and setup event listeners
         this.render();
-        
+
         // Setup event listeners for the new rows
         this.shadowRoot.querySelectorAll('.data-table tbody tr').forEach(row => {
             row.addEventListener('click', (e) => {
@@ -464,7 +474,7 @@ class DataTable extends HTMLElement {
     formatCell(value, type, colKey) {
         if (!value && value !== 0) return '';
 
-        switch(type) {
+        switch (type) {
             case 'timestamp':
                 const formattedTime = this.#columnTimeFormats.get(colKey) ? value : this.#formatTimestamp(value);
                 const label = colKey.charAt(0).toUpperCase() + colKey.slice(1).replace(/_/g, ' ');
@@ -481,10 +491,10 @@ class DataTable extends HTMLElement {
             case 'fk':
                 const fkeyValues = this.#fkeys[colKey] || [];
                 const fkeyModels = this.#fkeysModels[colKey] || [];
-                
+
                 // Find the index of the value in fkeyValues array
                 const modelIndex = fkeyValues.findIndex(val => val === value);
-                
+
                 let tooltipContent = '';
                 if (modelIndex >= 0 && fkeyModels[modelIndex]) {
                     const model = fkeyModels[modelIndex];
@@ -498,7 +508,7 @@ class DataTable extends HTMLElement {
                         })
                         .join('\n');
                 }
-                
+
                 return `<span class="fk" data-tooltip="${tooltipContent.replace(/"/g, '&quot;')}">${value}</span>`;
 
             default:
@@ -506,7 +516,7 @@ class DataTable extends HTMLElement {
                 if (typeof value === 'string') {
                     // Strip HTML tags for WYSIWYG content
                     const cleanText = value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-                    
+
                     // Add data-content attribute to store full text for tooltips
                     if (cleanText.length > 50) {
                         return `<div class="truncated-cell" data-content="${cleanText.replace(/"/g, '&quot;')}">
@@ -541,7 +551,7 @@ class DataTable extends HTMLElement {
                 const label = th.textContent; // Store the original label
                 this.#columnTimeFormats.set(columnKey, !this.#columnTimeFormats.get(columnKey));
                 th.dataset.format = this.#columnTimeFormats.get(columnKey) ? '🕒' : '📅';
-                
+
                 // Update only the cells for this column, not the header
                 const cells = this.shadowRoot.querySelectorAll(`td .timestamp[data-column="${columnKey}"]`);
                 cells.forEach(cell => {
@@ -596,16 +606,16 @@ class DataTable extends HTMLElement {
                         // Get table name from document data attribute
                         const tableName = document.body.dataset.table;
                         const adminPath = document.body.dataset.path;
-    
+
                         const response = await fetch(`${adminPath}/delete/rows`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
+                            body: JSON.stringify({
                                 ids: selectedRows,
-                                table: tableName 
+                                table: tableName
                             })
                         });
-    
+
                         const result = await response.json();
                         if (result.success) {
                             Notif.New({
@@ -629,9 +639,9 @@ class DataTable extends HTMLElement {
                     }
                 }
             })
-        
-                
-            
+
+
+
         });
 
         // Add reset button handler
@@ -665,7 +675,7 @@ class DataTable extends HTMLElement {
 
     updateSelectionBar() {
         const checkedCount = this.shadowRoot.querySelectorAll('.row-checkbox:checked').length;
-        
+
         if (checkedCount > 0) {
             this.#selectionBar.querySelector('.selected-count').textContent = `${checkedCount} records selected`;
             this.#selectionBar.classList.add('show');

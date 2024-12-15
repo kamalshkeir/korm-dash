@@ -121,6 +121,9 @@ html.dark .login-header h2 {
     transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
     touch-action: pan-y pinch-zoom;
     visibility: hidden;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .step.active {
@@ -333,8 +336,8 @@ html.dark {
     font-size: 0.75rem;
     color: #666;
     opacity: 0.8;
-    transform: translateY(10px);
-    transition: all 0.3s ease;
+    transform: translateY(0);
+    transition: opacity 0.3s ease;
 }
 
 .step.active .hint {
@@ -348,41 +351,6 @@ html.dark {
 
 .dark .hint {
     color: #999;
-} 
-
-/* Add subtle hint for swipe on mobile */
-@media (max-width: 640px) {
-    .step::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-    
-    .step.active::before {
-        animation: pulseHint 2s infinite;
-    }
-    
-    #emailStep::before {
-        right: -20px;
-        transform: translate(100%, -50%);
-    }
-    
-    #passwordStep::before {
-        left: -20px;
-        transform: translate(-100%, -50%);
-    }
-}
-
-@keyframes pulseHint {
-    0% { opacity: 0; transform: translate(100%, -50%) scale(0.8); }
-    50% { opacity: 0.5; transform: translate(100%, -50%) scale(1); }
-    100% { opacity: 0; transform: translate(100%, -50%) scale(0.8); }
 } 
 
 .mobile-hint {

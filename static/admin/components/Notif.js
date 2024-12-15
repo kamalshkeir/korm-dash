@@ -4,8 +4,111 @@ class NotificationManager {
     static getInstance() {
         if (!NotificationManager.instance) {
             NotificationManager.instance = new NotificationManager();
+            this.addStyles();
         }
         return NotificationManager.instance;
+    }
+
+    static addStyles() {
+        const styles = `
+            .notifications-container {
+                position: fixed;
+                top: 1rem;
+                right: 1rem;
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .notification {
+                min-width: 300px;
+                max-width: 450px;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                background: #18181b;
+                color: white;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                display: flex;
+                align-items: flex-start;
+                gap: 0.75rem;
+                transform: translateX(120%);
+                opacity: 0;
+                transition: all 0.3s ease;
+            }
+
+            .notification.show {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            .notification-icon {
+                flex-shrink: 0;
+                width: 20px;
+                height: 20px;
+            }
+
+            .notification-content {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .notification-title {
+                font-weight: 500;
+                margin-bottom: 0.25rem;
+            }
+
+            .notification-message {
+                font-size: 0.875rem;
+                opacity: 0.9;
+            }
+
+            .notification-close {
+                padding: 0.25rem;
+                background: none;
+                border: none;
+                color: currentColor;
+                opacity: 0.7;
+                cursor: pointer;
+                border-radius: 0.25rem;
+                flex-shrink: 0;
+            }
+
+            .notification-close:hover {
+                background: var(--theme-color-hover);
+            }
+
+            .notification-close svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .notification.success { background: #166534; }
+            .notification.error { background: #991b1b; }
+            .notification.info { background: #1e40af; }
+            .notification.warning { background: #ca8a04; }
+
+            /* Hover states for close buttons */
+            .notification.success .notification-close:hover { background: #14532d; }
+            .notification.error .notification-close:hover { background: #7f1d1d; }
+            .notification.info .notification-close:hover { background: #1e3a8a; }
+            .notification.warning .notification-close:hover { background: #a16207; }
+
+            @media (max-width: 640px) {
+                .notifications-container {
+                    left: 1rem;
+                    right: 1rem;
+                }
+                .notification {
+                    min-width: 0;
+                    width: 100%;
+                }
+            }
+        `;
+
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
     }
 
     constructor() {
