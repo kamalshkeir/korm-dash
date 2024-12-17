@@ -13,20 +13,18 @@
             <app-header title="Dashboard" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout"></app-header>
             <div class="content-area">
                 <div class="dashboard-grid">
-                    <div class="stats-card">
-                        <h3>Total Records</h3>
-                        <p>{{.count}}</p>
-                    </div>
                     {{if .withRequestCounter}}
                     <div class="stats-card">
                         <h3>API Requests</h3>
                         <p>{{.requests}}</p>
                     </div>
                     {{end}}
+                    {{range .stats}}
                     <div class="stats-card">
-                        <h3>Storage Used</h3>
-                        <p>{{.db_size}}</p>
+                        <h3>{{.Name | safe}}</h3>
+                        <p>{{call .Func | safe}}</p>
                     </div>
+                    {{end}}
                 </div>
             </div>
         </main>

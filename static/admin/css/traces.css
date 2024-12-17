@@ -313,7 +313,7 @@ mark {
 }
 
 .refresh-select {
-    padding: 8px 12px;
+    padding: 2px;
     border: 1px solid #ddd;
     border-radius: 4px;
     background: white;

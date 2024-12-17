@@ -84,7 +84,6 @@ class DataTable extends HTMLElement {
 
                 .data-table td {
                     padding: 0.75rem 1rem;
-                    border-bottom: 1px solid var(--border-color);
                     vertical-align: middle;
                     line-height: 1.5;
                     white-space: nowrap;

@@ -54,6 +54,10 @@ class AppHeader extends HTMLElement {
                     position: relative;
                     z-index: 1001;
                 }
+                    
+                app-header .user-button .username {
+                    font-weight:bold;
+                }
 
                 .user-button:hover {
                     color: var(--theme-color,#12449f);
