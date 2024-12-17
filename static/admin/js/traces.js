@@ -25,15 +25,15 @@ async function refreshTraces() {
 
 function filterTraces(traces) {
     if (!searchTerm) return traces;
-    
+
     return traces.filter(trace => {
         // Check if trace ID matches
         if (trace.traceID.toLowerCase().includes(searchTerm.toLowerCase())) {
             return true;
         }
-        
+
         // Check if any span name matches
-        return trace.spans.some(span => 
+        return trace.spans.some(span =>
             span.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
     });
@@ -44,7 +44,7 @@ function renderTracesList(traces) {
     container.innerHTML = '';
 
     const filteredTraces = filterTraces(traces);
-    
+
     if (filteredTraces.length === 0) {
         container.innerHTML = `
             <div class="no-results">
@@ -64,26 +64,27 @@ function renderTracesList(traces) {
     sortedTraces.forEach(trace => {
         const traceElement = document.createElement('div');
         traceElement.className = `trace-item${selectedTraceId === trace.traceID ? ' selected' : ''}`;
-        
+
         // Find root span (span without parent)
         const rootSpan = trace.spans.find(span => !span.parentID) || trace.spans[0];
         const duration = rootSpan ? rootSpan.duration : 'N/A';
-        
+
         // Highlight matching text if there's a search term
         let spanName = rootSpan ? rootSpan.name : 'Unknown';
         let traceId = trace.traceID;
-        
+
         if (searchTerm) {
             const regex = new RegExp(`(${searchTerm})`, 'gi');
             spanName = spanName.replace(regex, '<mark>$1</mark>');
             traceId = traceId.replace(regex, '<mark>$1</mark>');
         }
-        
+
         traceElement.innerHTML = `
             <div class="trace-name">${spanName}</div>
             <div class="trace-info">
-                <span class="trace-id">ID: ${traceId}</span>
-                <span class="trace-duration">Duration: ${duration}</span>
+            <span class="trace-id">ID: ${traceId}</span>
+            <br>
+            <span class="trace-duration">Took:<span class="dnum"> ${duration}</span></span>
             </div>
         `;
 
@@ -92,11 +93,11 @@ function renderTracesList(traces) {
             document.querySelectorAll('.trace-item').forEach(el => {
                 el.classList.remove('selected');
             });
-            
+
             // Add selected class to clicked trace
             traceElement.classList.add('selected');
             selectedTraceId = trace.traceID;
-            
+
             clearTagStates();
             showTraceDetails(trace);
         };
@@ -108,8 +109,19 @@ function showTraceDetails(trace) {
     const container = document.getElementById('trace-details-container');
     container.innerHTML = '';
 
+    // Add trace ID header
+    const traceIdHeader = document.createElement('div');
+    traceIdHeader.className = 'trace-id-header';
+    traceIdHeader.innerHTML = `
+        <div class="trace-id-info">
+            <span class="trace-id-label">Trace ID:</span>
+            <span class="trace-id-value">${trace.traceID}</span>
+        </div>
+    `;
+    container.appendChild(traceIdHeader);
+
     // Sort spans by start time
-    const spans = trace.spans.sort((a, b) => 
+    const spans = trace.spans.sort((a, b) =>
         new Date(a.startTime) - new Date(b.startTime)
     );
 
@@ -135,7 +147,7 @@ function showTraceDetails(trace) {
         spanElement.className = 'span-timeline';
         spanElement.style.marginLeft = `${depth * 20}px`;
         spanElement.dataset.spanId = span.id;
-        
+
         // Create timeline connector and dot
         const connector = document.createElement('div');
         connector.className = 'timeline-connector';
@@ -184,8 +196,8 @@ function showTraceDetails(trace) {
                         </div>
                         <div class="tags-content ${expandedTags.has(span.id) ? '' : 'hidden'}">
                             ${Object.entries(span.tags)
-                                .map(([key, value]) => `<span class="tag">${key}: ${value}</span>`)
-                                .join('')}
+                    .map(([key, value]) => `<span class="tag">${key}: ${value}</span>`)
+                    .join('')}
                         </div>
                     </div>
                 ` : ''}
@@ -200,7 +212,7 @@ function showTraceDetails(trace) {
             const childrenContainer = document.createElement('div');
             childrenContainer.className = `children-container ${expandedChildren.has(span.id) ? '' : 'hidden'}`;
             spanElement.appendChild(childrenContainer);
-            
+
             // Render children into the container
             const children = childrenMap.get(span.id) || [];
             children.forEach(child => {
@@ -238,10 +250,10 @@ function toggleSpanDetails(element, spanId) {
     const spanTimeline = element.closest('.span-timeline');
     const content = spanTimeline.querySelector('.span-details');
     const isCollapsing = !content.classList.contains('hidden');
-    
+
     content.classList.toggle('hidden');
     element.textContent = isCollapsing ? '▶' : '▼';
-    
+
     if (isCollapsing) {
         removeSpanState(spanId);
     } else {
@@ -255,10 +267,10 @@ function toggleChildren(element) {
     const childrenContainer = spanTimeline.querySelector('.children-container');
     const spanId = spanTimeline.dataset.spanId;
     const isCollapsing = !childrenContainer.classList.contains('hidden');
-    
+
     childrenContainer.classList.toggle('hidden');
     element.textContent = isCollapsing ? '▶' : '▼';
-    
+
     if (isCollapsing) {
         expandedChildren.delete(spanId);
     } else {
@@ -280,7 +292,7 @@ function updateRefreshInterval(value) {
     if (refreshInterval) {
         clearInterval(refreshInterval);
     }
-    
+
     const interval = parseInt(value);
     if (interval > 0) {
         refreshInterval = setInterval(refreshTraces, interval);
@@ -316,18 +328,18 @@ function clearTagStates() {
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const refreshSelect = document.getElementById('refresh-interval');
-    
+
     searchInput.addEventListener('input', (e) => {
         searchTerm = e.target.value;
         renderTracesList(currentTraces);
     });
-    
+
     refreshSelect.addEventListener('change', (e) => {
         updateRefreshInterval(e.target.value);
     });
-    
+
     // Initialize refresh interval
     updateRefreshInterval(refreshSelect.value);
-    
+
     refreshTraces();
 });
