@@ -22,7 +22,7 @@ class NavBar extends HTMLElement {
             document.head.appendChild(styleSheet);
         }
         document.querySelector('.main-content')?.classList.add('full-width');
-        
+
         this.render();
         this.setupEventListeners();
     }
@@ -59,6 +59,9 @@ class NavBar extends HTMLElement {
     setupEventListeners() {
         // Handle click on sidebar to expand
         this.addEventListener('click', (e) => {
+            if (e.target.classList.contains("logo-text")) {
+                window.location.href = "/"
+            }
             if (window.innerWidth > 768) {
                 this.classList.toggle('expanded');
                 document.querySelector('.main-content')?.classList.toggle('full-width');
@@ -169,6 +172,7 @@ class NavBar extends HTMLElement {
                     margin-left: 20px;
                     letter-spacing: 1px;
                     transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+                    cursor: pointer;
                 }
 
                 /* Update for collapsed sidebar */
