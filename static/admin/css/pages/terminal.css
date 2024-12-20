@@ -56,6 +56,7 @@
 }
 
 .input-line {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -112,4 +113,32 @@
         padding: 15px;
         font-size: 13px;
     }
+}
+
+.suggestions {
+    position: absolute;
+    bottom: 100%;
+    left: 20px;
+    background: #2c313a;
+    border: 1px solid #4b5263;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: auto;
+    min-width: 150px;
+    display: none;
+    z-index: 1000;
+}
+
+.suggestion {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: #abb2bf;
+    transition: background-color 0.2s;
+}
+
+.suggestion:hover,
+.suggestion.selected {
+    background-color: #3e4451;
+    color: #61afef;
 }
