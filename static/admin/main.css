@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'Quicksand';
-    src: url('/static/admin/Quicksand-VariableFont_wght.ttf');
+    src: url('https://cdn.jsdelivr.net/gh/kamalshkeir/korm-dash@master/static/admin/Quicksand-VariableFont_wght.ttf');
 }
 
 
