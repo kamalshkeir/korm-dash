@@ -593,7 +593,7 @@ class DataTable extends HTMLElement {
         deleteButton?.addEventListener('click', async () => {
             const selectedRows = [...rowCheckboxes]
                 .filter(cb => cb.checked)
-                .map(cb => cb.closest('tr').dataset.pk);
+                .map(cb => Number(cb.closest('tr').dataset.pk));
 
             if (selectedRows.length === 0) {
                 return;
