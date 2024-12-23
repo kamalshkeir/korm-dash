@@ -92,8 +92,16 @@ input.addEventListener('keydown', async (e) => {
                     const parts = inputValue.split(' ');
                     if (parts.length > 1) {
                         // If there's a command, keep it and add the suggestion
-                        parts[parts.length - 1] = data.suggestions[0];
-                        input.value = parts.join(' ');
+                        const command = parts[0];
+                        const lastPart = parts[parts.length - 1];
+                        // Check if we're completing a path
+                        if (lastPart.includes('/')) {
+                            // Replace only the last part of the path
+                            parts[parts.length - 1] = data.suggestions[0];
+                            input.value = parts.join(' ');
+                        } else {
+                            input.value = `${command} ${data.suggestions[0]}`;
+                        }
                     } else {
                         // If no command, just use the suggestion
                         input.value = data.suggestions[0];
