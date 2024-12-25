@@ -2,22 +2,13 @@ const STATIC_CACHE_NAME = "static-v1";
 const DYNAMIC_CACHE_NAME = `dynamic-${new Date().getTime()}`;
 const STATIC_FILES = [
     //admin
-    "/static/admin/192.png",
-    "/static/admin/144.png",
-    "/static/admin/465.png",
     "/static/admin/main.css",
     "/static/admin/components/jodit_editor.min.css",
     "/static/admin/components/jodit_editor.min.js",
-    "/static/admin/css/pages/logs.css",
-    "/static/admin/css/pages/login.css",
-    "/static/admin/css/pages/tables.css",
-    "/static/admin/css/pages/single-table.css",
-
     //pwa
     "/sw.js",
     "/manifest.webmanifest",
     "/offline"
-    // Your extras static files
 ];
 
 
