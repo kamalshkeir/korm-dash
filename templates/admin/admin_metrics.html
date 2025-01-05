@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{template "head" .}}
+    <!-- <link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/nodemanager.css"> -->
+    <title>Metrics</title>
+</head>
+
+<body data-admin-path="{{$.admin_path}}">
+    <div class="app-layout">
+        <nav-bar id="mainNav"></nav-bar>
+        <main class="main-content">
+            <app-header title="Metrics" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout"></app-header>
+            <div class="content-area">
+                <!-- CONTENT HERE -->
+            </div>
+        </main>
+    </div>
+
+    <script src="{{$.static_url}}/admin/js/main.js"></script>
+</body>
+
+</html>

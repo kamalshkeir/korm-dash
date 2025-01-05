@@ -7,8 +7,15 @@ const prevButton = document.querySelector('.prev-page');
 const nextButton = document.querySelector('.next-page');
 const currentPageSpan = document.querySelector('.current-page');
 
+let unsub;
+
+window.addEventListener('beforeunload', () => {
+    unsub.Unsubscribe()
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     let serverData = null;
+    
 
     // Pagination handlers
     prevButton?.addEventListener('click', () => {
@@ -41,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Extract table loading logic into a function
     const loadTableData = () => {
         fetch(adminPath + "/tables/all/" + tableName, {
             method: "POST",
@@ -62,10 +68,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentPageSpan.textContent = `Page ${page} of ${totalPages}`;
             }
         });
-    }
+    }    
 
-    // Initial load
-    loadTableData();
+    let bus = new Bus();
+    bus.OnOpen = () => {
+        unsub = bus.Subscribe("korm_db_dashboard_hooks",() => {
+            setTimeout(() => {
+                loadTableData()
+            },500)
+        })
+    }
 
     // Handle import button
     document.querySelector('.import-btn').addEventListener('click', () => {
@@ -221,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                         } else if (result.error){
                             Notif.New({
-                                title: 'Error',
+                                title: 'Error Fetch',
                                 message: result.error,
                                 type: 'error',
                                 duration: 3000
@@ -231,7 +243,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     })
                     .catch(error => {
-                        console.error('Error submitting form:', error);
+                        Notif.New({
+                            title: 'Error Submit Form',
+                            message: error,
+                            type: 'error',
+                            duration: 3000
+                        }).show()
                     });
             });
         }
@@ -264,13 +281,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     form.querySelectorAll('input, textarea').forEach(input => {
                         const name = input.getAttribute('name');
                         if (name) {
-                            // Add debug logging for speciality field
-                            if (name === 'speciality' || name === 'city') {
-                                console.log(`${name} value: "${input.value}"`);
-                                console.log(`${name} value length:`, input.value.length);
-                                console.log(`${name} value bytes:`, Array.from(input.value).map(c => c.charCodeAt(0)));
-                            }
-
                             if (input.type === "file") {
                                 if (input.files[0]) {
                                     data.set(name, input.files[0]);
@@ -290,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     // Add required field
                     data.set("table", tableName);
-
+                    data.set("pk",document.body.dataset.pk)
                     // Send the request
                     fetch(`${adminPath}/create/row`, {
                         method: 'POST',
@@ -310,11 +320,21 @@ document.addEventListener("DOMContentLoaded", () => {
                                 table.data = [result.inserted, ...table.data];
                             }
                         } else {
-                            console.error('Error creating record:', result.error);
+                            Notif.New({
+                                title: 'Error Fetch',
+                                message: result.error,
+                                type: 'error',
+                                duration: 3000
+                            }).show()
                         }
                     })
                     .catch(error => {
-                        console.error('Error submitting form:', error);
+                        Notif.New({
+                            title: 'Error Submit Form',
+                            message: error,
+                            type: 'error',
+                            duration: 3000
+                        }).show()
                     });
                 });
             }
@@ -379,7 +399,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function generateForm(data) {
     const { columnsOrdered, columns, dbcolumns, pk, fkeys, fkeysModels, rowData } = data;
     const isEdit = !!rowData;
-
+    console.log("generate form from",data)
     const formFields = columnsOrdered.map(col => {
         // Skip ID/PK fields for create mode
         if (!isEdit && (col === pk || col === 'id')) return '';
@@ -451,7 +471,7 @@ function generateForm(data) {
                     </div>
                 </div>
             `;
-        } else if (type.includes('time') || type.includes('timestamp') || type.includes('Time')) {
+        } else if ((type.includes('time') || type.includes('timestamp') || type.includes('Time')) && !type.includes('map')) {
             let timestamp = '';
             if (isEdit && rowData[col]) {
                 const ts = parseInt(rowData[col]);

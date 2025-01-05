@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{template "head" .}}
+    <link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/nodemanager.css">
+    <title>Node Manager</title>
+</head>
+
+<body data-admin-path="{{$.admin_path}}">
+    <div class="app-layout">
+        <nav-bar id="mainNav"></nav-bar>
+        <main class="main-content">
+            <app-header title="Node Manager" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout"></app-header>
+            <div class="content-area">
+                <div class="node-manager-container">
+                    <div class="node-stats">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Nodes</div>
+                            <div class="stat-value" id="totalNodes">{{len .nodes}}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Active Nodes</div>
+                            <div class="stat-value" id="activeNodes">{{.activeNodes}}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Secure Connections</div>
+                            <div class="stat-value" id="secureNodes">{{.secureNodes}}</div>
+                        </div>
+                    </div>
+
+                    <div class="nodes-list">
+                        <div class="node-actions">
+                            <button class="btn" onclick="showAddNodeForm()">Add Node</button>
+                            <button class="btn btn-outline" onclick="refreshNodes()">Refresh</button>
+                        </div>
+
+                        <div class="nodes-grid" id="nodesGrid">
+                            {{range .nodes}}
+                            <div class="node-card">
+                                <div class="node-header">
+                                    <div style="display: flex; align-items: flex-start;">
+                                        <div class="node-status {{if not .Active}}offline{{end}}" title="{{if .Active}}Active{{else}}Offline{{end}}"></div>
+                                        <div class="node-info">
+                                            <div class="node-id">ID: {{.ID}}</div>
+                                            <div class="node-address">{{.Address}}</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="restart-btn" onclick="restartNode('{{.Address}}')" title="Restart Node">
+                                            Restart
+                                        </button>
+                                        <button class="btn btn-outline" onclick="removeNode('{{.Address}}')" style="padding: 5px 10px;">
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                                {{if .Secure}}
+                                <div class="node-secure">Secure Connection</div>
+                                {{end}}
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overlay" id="overlay"></div>
+                <div class="add-node-form" id="addNodeForm">
+                    <h2 style="margin-bottom: 20px; color: var(--theme-color);">Add New Node</h2>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" id="nodeAddress" placeholder="localhost:9314">
+                    </div>
+                    <div class="form-group">
+                        <label>Secure Connection</label>
+                        <input type="checkbox" id="nodeSecure">
+                    </div>
+                    <div class="node-actions">
+                        <button class="btn" onclick="addNode()">Add Node</button>
+                        <button class="btn btn-outline" onclick="hideAddNodeForm()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{$.static_url}}/admin/js/main.js"></script>
+    <script src="{{$.static_url}}/admin/js/nodemanager.js"></script>
+</body>
+
+</html>

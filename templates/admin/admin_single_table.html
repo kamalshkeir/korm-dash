@@ -11,7 +11,7 @@
 </head>
 
 
-<body data-path="{{$.admin_path}}" data-table="{{$.table}}">
+<body data-path="{{$.admin_path}}" data-table="{{$.table}}" data-pk="{{$.pk}}">
     <div class="app-layout">
         <nav-bar id="mainNav"></nav-bar>
         <main class="main-content">
@@ -77,7 +77,7 @@
         </div>
     </div>
 
-    <script src="{{$.static_url}}/admin/components/NavBar.js" type="module"></script>
+    <script src="{{$.static_url}}/Bus.js"></script>
     <script src="{{$.static_url}}/admin/components/DataTable.js" type="module"></script>
     <script src="{{$.static_url}}/admin/components/jodit_editor.min.js"></script>
     <script src="{{$.static_url}}/admin/js/single_table.js" type="module"></script>

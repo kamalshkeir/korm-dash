@@ -44,7 +44,13 @@ class Bus {
         };
 
         $this.conn.onmessage = (e) => {
-            let obj = JSON.parse(e.data);
+            let obj;
+            try {
+                obj = JSON.parse(e.data);
+            } catch (err) {
+                console.error("Failed to parse message:", err);
+                return;
+            }
             $this.subscription = {};
             $this.OnDataWs(obj, $this.conn);
             if (obj.event_id !== undefined) {

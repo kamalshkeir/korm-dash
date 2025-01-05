@@ -270,9 +270,9 @@ class NavBar extends HTMLElement {
                     }
 
                     nav-bar.collapsed .nav-item span {
-                        opacity: 1;
                         position: static;
                         width: auto;
+                        display: none;
                     }
                     .logo-text {
                         font-size: 20px;

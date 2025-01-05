@@ -23,19 +23,19 @@ class DataTable extends HTMLElement {
         this.#fkeys = data.fkeys || {};
         this.#fkeysModels = data.fkeysModels || {};
         this.#pk = data.pk || 'id';
-
+        console.log("data DataTable",data)
         // Generate columns from columnsOrdered
         this.#columns = data.columnsOrdered?.map(col => ({
             key: col,
             label: col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' '),
             type: this.#getColumnType(col, data.columns[col], data.dbcolumns[col])
         })) || [];
-
+        
         this.render();
     }
 
     #getColumnType(colName, goType, dbType) {
-        if (this.constructor.TIMESTAMP_KEYWORDS.some(k => goType?.includes(k))) {
+        if (this.constructor.TIMESTAMP_KEYWORDS.some(k => goType?.includes(k) && !goType?.includes('map'))) {
             return 'timestamp';
         }
         if (this.constructor.IMAGE_KEYWORDS.some(k => colName?.includes(k))) {
@@ -472,7 +472,6 @@ class DataTable extends HTMLElement {
 
     formatCell(value, type, colKey) {
         if (!value && value !== 0) return '';
-
         switch (type) {
             case 'timestamp':
                 const formattedTime = this.#columnTimeFormats.get(colKey) ? value : this.#formatTimestamp(value);

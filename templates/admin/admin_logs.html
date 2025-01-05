@@ -6,15 +6,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {{template "head" .}}
     <link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/logs.css">
-    <title>Logs</title>
+    <title>Logs And Metrics</title>
 </head>
 
 <body>
     <div class="app-layout">
         <nav-bar id="mainNav"></nav-bar>
         <main class="main-content">
-            <app-header title="Logs" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout"></app-header>
+            <app-header title="Logs And Metrics" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout"></app-header>
             <div class="content-area">
+                <div class="metrics-controls">
+                    <div class="refresh-control">
+                        <label for="refresh-interval">Refresh Interval:</label>
+                        <select id="refresh-interval">
+                            <option value="1000">1 second</option>
+                            <option value="5000" selected>5 seconds</option>
+                            <option value="10000">10 seconds</option>
+                            <option value="30000">30 seconds</option>
+                            <option value="60000">1 minute</option>
+                        </select>
+                    </div>
+                    <div class="auto-refresh">
+                        <label>
+                            <input type="checkbox" id="auto-refresh" checked>
+                            Auto Refresh
+                        </label>
+                        <button id="refresh-now" class="refresh-button">
+                            <span class="refresh-icon">🔄</span>
+                            Refresh Now
+                        </button>
+                    </div>
+                </div>
+
+                <div class="metrics-grid" id="metrics-container">
+                    <div class="metric-card memory">
+                        <div class="metric-header">
+                            <h3>Memory Usage</h3>
+                            <span class="metric-icon">📊</span>
+                        </div>
+                        <div class="metric-stats">
+                            <div class="metric-item">
+                                <span class="metric-label">Heap Memory:</span>
+                                <span class="metric-value" data-metric="heap-memory">{{printf "%.2f" .metrics.HeapMemoryMB}} MB</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">System Memory:</span>
+                                <span class="metric-value" data-metric="system-memory">{{printf "%.2f" .metrics.SystemMemoryMB}} MB</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Stack Memory:</span>
+                                <span class="metric-value" data-metric="stack-memory">{{printf "%.2f" .metrics.StackMemoryMB}} MB</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card gc">
+                        <div class="metric-header">
+                            <h3>Garbage Collection</h3>
+                            <span class="metric-icon">🔄</span>
+                        </div>
+                        <div class="metric-stats">
+                            <div class="metric-item">
+                                <span class="metric-label">GC Cycles:</span>
+                                <span class="metric-value" data-metric="gc-cycles">{{.metrics.NumGC}}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Last GC:</span>
+                                <span class="metric-value" data-metric="last-gc">{{printf "%.1f" .metrics.LastGCTimeSec}}s ago</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">GC CPU Usage:</span>
+                                <span class="metric-value" data-metric="gc-cpu">{{printf "%.2f" .metrics.GCCPUPercent}}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card runtime">
+                        <div class="metric-header">
+                            <h3>Runtime Info</h3>
+                            <span class="metric-icon">⚡</span>
+                        </div>
+                        <div class="metric-stats">
+                            <div class="metric-item">
+                                <span class="metric-label">Goroutines:</span>
+                                <span class="metric-value" data-metric="goroutines">{{.metrics.NumGoroutines}}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">CPUs:</span>
+                                <span class="metric-value" data-metric="cpus">{{.metrics.NumCPU}}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Go Version:</span>
+                                <span class="metric-value" data-metric="go-version">{{.metrics.GoVersion}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="logs-list">
                     {{range .parsed}}
                     <div class="log-item">
@@ -38,6 +126,8 @@
         </main>
     </div>
     <script src="{{$.static_url}}/admin/js/main.js"></script>
+    <script src="{{$.static_url}}/admin/js/metrics.js"></script>
+    <script src="{{$.static_url}}/admin/js/logs.js"></script>
 </body>
 
 </html>
