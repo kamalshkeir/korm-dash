@@ -16,7 +16,6 @@ window.addEventListener('beforeunload', () => {
 document.addEventListener("DOMContentLoaded", () => {
     let serverData = null;
     
-
     // Pagination handlers
     prevButton?.addEventListener('click', () => {
         if (page > 1) {

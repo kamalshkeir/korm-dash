@@ -410,15 +410,15 @@ class AppHeader extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ["title", "username", "email", "logout","restart"];
+        return ["titre", "username", "email", "logout","restart"];
     }
 
-    get title() {
-        return this.getAttribute("title");
+    get titre() {
+        return this.getAttribute("titre");
     }
 
-    set title(value) {
-        return this.setAttribute("title", value);
+    set titre(value) {
+        return this.setAttribute("titre", value);
     }
     get restart() {
         return this.getAttribute("restart");
@@ -452,7 +452,7 @@ class AppHeader extends HTMLElement {
 
     render() {
         const path = window.location.pathname;
-        let title = this.title || 'Dashboard';
+        let title = this.titre || 'Dashboard';
         // get first letter of username or email
         const avatar = this.username ? this.username[0] : this.email[0];
         this.innerHTML = `
@@ -617,7 +617,11 @@ class AppHeader extends HTMLElement {
         const restartLink = this.querySelector('.restart-link');
         if (restartLink) {
             restartLink.addEventListener('click', (e) => {
-                this.makeGetRequest(e, this.restart || '/admin/restart');
+                Ask("Do you confirm you want to restart ?").then(ok => {
+                    if (ok) {
+                        this.makeGetRequest(e, this.restart || '/admin/restart');
+                    }
+                })
             });
         }
     }
