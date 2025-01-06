@@ -15,8 +15,7 @@
     <div class="app-layout">
         <nav-bar id="mainNav"></nav-bar>
         <main class="main-content">
-            <app-header title="<a href='{{$.admin_path}}/tables' style='color: #e5e5e5;text-decoration: none;'>Tables</a> / {{$.table}}" username="{{$.User.Username}}" email="{{$.User.Email}}"
-                logout="{{$.admin_path}}/logout"></app-header>
+            <app-header title="<a href='{{$.admin_path}}/tables' style='color: #e5e5e5;text-decoration: none;'>Tables</a> / {{$.table}}" username="{{$.User.Username}}" email="{{$.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
             <div class="content-area" style="margin-top: 100px 0px;">
                 <div class="table-header">
                     <form class="table-search">

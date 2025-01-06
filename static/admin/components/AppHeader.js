@@ -3,6 +3,18 @@ class AppHeader extends HTMLElement {
         super();
     }
 
+    makeGetRequest(e, url) {
+        e.preventDefault();
+        fetch(url)
+            .catch(error => {
+                Notif.New({
+                    title: 'Error',
+                    message: error.message,
+                    type: 'error'
+                }).show();
+            });
+    }
+
     static get defaultStyles() {
         return `
             <style>
@@ -398,7 +410,7 @@ class AppHeader extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ["title", "username", "email", "logout"];
+        return ["title", "username", "email", "logout","restart"];
     }
 
     get title() {
@@ -407,6 +419,13 @@ class AppHeader extends HTMLElement {
 
     set title(value) {
         return this.setAttribute("title", value);
+    }
+    get restart() {
+        return this.getAttribute("restart");
+    }
+
+    set restart(value) {
+        return this.setAttribute("restart", value);
     }
     get username() {
         return this.getAttribute("username");
@@ -473,8 +492,15 @@ class AppHeader extends HTMLElement {
                                     <button class="theme-preset" data-color="#9f1239" style="background: #9f1239"></button>
                                 </div>
                             </div>
+                            
                             <div class="popup-divider"></div>
-                            <a href="${this.logout || '/logout'}" class="popup-item">
+                            <a href="#" class="popup-item restart-link">
+                                <svg viewBox="0 0 24 24" width="18" height="18">
+                                    <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                                </svg> Restart
+                            </a>
+                            <div class="popup-divider"></div>
+                            <a href="${this.logout || '/admin/logout'}" class="popup-item">
                                 <svg viewBox="0 0 24 24" width="18" height="18">
                                     <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
                                 </svg>
@@ -586,7 +612,17 @@ class AppHeader extends HTMLElement {
             }
             this.applyDarkMode(true);
         }
+
+        // Add restart link handler
+        const restartLink = this.querySelector('.restart-link');
+        if (restartLink) {
+            restartLink.addEventListener('click', (e) => {
+                this.makeGetRequest(e, this.restart || '/admin/restart');
+            });
+        }
     }
 }
+
+
 
 customElements.define('app-header', AppHeader); 

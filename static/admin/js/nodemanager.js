@@ -194,5 +194,5 @@ function updateNodesUI(data) {
 // Initial load
 refreshNodes();
 
-// Refresh every 30 seconds
-setInterval(refreshNodes, 30000);
+// Refresh every 5 seconds
+setInterval(refreshNodes, 5000);
