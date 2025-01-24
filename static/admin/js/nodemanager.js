@@ -1,4 +1,25 @@
 let adminPath = document.body.dataset.adminPath
+
+const client = new Kactor({
+    // address: window.location.host,
+    // path: "/ws/kactor",
+    // secure: false,
+    onOpen: () => {
+        console.log("connected as", client.id)
+        client.subscribe("korm_db_dashboard_nm", "", (data,_) => {
+            console.log("got on korm_db_dashboard_nm",data)
+            updateNodesUI(data)
+        }).then(async subscription => {
+            if (!subscription) {
+                new Error("Subscription failed");
+                return;
+            }
+            console.log("✓ Subscribed to topic");
+        }).catch(err => new Error(err));
+    }
+});
+
+
 function restartNode(addr) {
     Ask(`Are you sure you want to restart node ${addr} ?`).then(ok => {
         if (ok) {
@@ -24,7 +45,6 @@ function restartNode(addr) {
                             message: 'Restarting started',
                             type: 'info'
                         }).show();
-                        setTimeout(refreshNodes, 2000);
                     }
                 })
                 .catch(error => {
@@ -190,9 +210,3 @@ function updateNodesUI(data) {
         nodesGrid.appendChild(nodeCard);
     });
 }
-
-// Initial load
-refreshNodes();
-
-// Refresh every 5 seconds
-setInterval(refreshNodes, 5000);

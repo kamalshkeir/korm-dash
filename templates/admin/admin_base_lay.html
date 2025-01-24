@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{template "head" .}}
+    <title>TITLE HERE</title>
+</head>
+
+<body data-admin-path="{{$.admin_path}}">
+    <div class="app-layout">
+        <nav-bar id="mainNav"></nav-bar>
+        <main class="main-content">
+            <app-header titre="TITLE HERE" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
+            <div class="content-area">
+                <!-- CONTENT HERE -->
+            </div>
+        </main>
+    </div>
+
+    <script src="{{$.static_url}}/admin/js/main.js"></script>
+</body>
+
+</html>

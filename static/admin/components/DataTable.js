@@ -23,7 +23,6 @@ class DataTable extends HTMLElement {
         this.#fkeys = data.fkeys || {};
         this.#fkeysModels = data.fkeysModels || {};
         this.#pk = data.pk || 'id';
-        console.log("data DataTable",data)
         // Generate columns from columnsOrdered
         this.#columns = data.columnsOrdered?.map(col => ({
             key: col,

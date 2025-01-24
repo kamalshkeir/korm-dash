@@ -69,14 +69,26 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }    
 
-    let bus = new Bus();
-    bus.OnOpen = () => {
-        unsub = bus.Subscribe("korm_db_dashboard_hooks",() => {
-            setTimeout(() => {
-                loadTableData()
-            },500)
-        })
-    }
+    const client = new Kactor({
+        // address: window.location.host,
+        // path: "/ws/kactor",
+        // id: "korm_db_dashboard_hooks-client_js",
+        // secure: false,
+        onOpen: () => {
+            console.log("connected as",client.id)
+            client.subscribe("korm_db_dashboard_hooks", "", () => {
+                setTimeout(() => {
+                    loadTableData()
+                },200)
+            }).then(async subscription => {
+                if (!subscription) {
+                    new Error("Subscription failed");
+                    return;
+                }
+                console.log("✓ Subscribed to topic");
+            }).catch(err => new Error(err));
+        }
+    });
 
     // Handle import button
     document.querySelector('.import-btn').addEventListener('click', () => {
@@ -398,7 +410,6 @@ document.addEventListener("DOMContentLoaded", () => {
 function generateForm(data) {
     const { columnsOrdered, columns, dbcolumns, pk, fkeys, fkeysModels, rowData } = data;
     const isEdit = !!rowData;
-    console.log("generate form from",data)
     const formFields = columnsOrdered.map(col => {
         // Skip ID/PK fields for create mode
         if (!isEdit && (col === pk || col === 'id')) return '';
