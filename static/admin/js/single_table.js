@@ -444,7 +444,7 @@ function generateForm(data) {
         const readOnlyAttr = 'readonly onfocus="this.removeAttribute(\'readonly\')"';
 
         // Generate UUID for UUID fields in create mode
-        if (!isEdit && col.toLowerCase().includes('uuid')) {
+        if (!isEdit && col.toLowerCase().includes('uuid') && !fkeys[col]) {
             input = `<input type="text" id="${col}" name="${col}" class="form-control input" value="${crypto.randomUUID()}" readonly>`;
         } else if (fkeys && fkeys[col]) {
             // Add debug logging for the database values
