@@ -4,7 +4,7 @@ class MetricsManager {
         this.isAutoRefresh = true;
         this.refreshTimer = null;
         this.setupEventListeners();
-        this.startAutoRefresh();
+        // this.startAutoRefresh();
     }
 
     setupEventListeners() {
