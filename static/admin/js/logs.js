@@ -3,7 +3,6 @@ class LogsManager {
         // Share the same refresh controls as metrics
         this.metricsManager = window.metricsManager;
         this.setupEventListeners();
-        this.startAutoRefresh();
     }
 
     setupEventListeners() {
@@ -24,16 +23,6 @@ class LogsManager {
         if (refreshButton) {
             refreshButton.addEventListener('click', () => {
                 this.refreshLogs();
-            });
-        }
-
-        // Refresh interval change
-        const intervalSelect = document.getElementById('refresh-interval');
-        if (intervalSelect) {
-            intervalSelect.addEventListener('change', (e) => {
-                if (autoRefreshCheckbox && autoRefreshCheckbox.checked) {
-                    this.restartAutoRefresh();
-                }
             });
         }
     }

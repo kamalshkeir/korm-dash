@@ -8,17 +8,6 @@ class MetricsManager {
     }
 
     setupEventListeners() {
-        // Refresh interval change
-        const intervalSelect = document.getElementById('refresh-interval');
-        if (intervalSelect) {
-            intervalSelect.addEventListener('change', (e) => {
-                this.refreshInterval = parseInt(e.target.value);
-                if (this.isAutoRefresh) {
-                    this.restartAutoRefresh();
-                }
-            });
-        }
-
         // Auto refresh toggle
         const autoRefreshCheckbox = document.getElementById('auto-refresh');
         if (autoRefreshCheckbox) {
