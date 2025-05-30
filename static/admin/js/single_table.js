@@ -428,6 +428,7 @@ function generateForm(data) {
 
         const type = columns[col];
         const dbType = dbcolumns[col];
+        
         let input = '';
 
         // Helper to check if field is an image type
@@ -513,7 +514,7 @@ function generateForm(data) {
                     ${readOnlyAttr}
                     ${isEdit ? 'placeholder="Leave empty to keep current password"' : ''}>
             `;
-        } else if (dbType.toLowerCase() === 'text') {
+        } else if ( dbType && dbType.toLowerCase() === 'text') {
             input = `<textarea class="editor" name="${col}" id="${col}">${isEdit ? rowData[col] || '' : ''}</textarea>`;
         } else {
             input = `<input type="text" id="${col}" name="${col}" class="form-control input" ${readOnlyAttr} value="${isEdit ? rowData[col] || '' : ''}">`;
