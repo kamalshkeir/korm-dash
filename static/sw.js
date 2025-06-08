@@ -3,8 +3,6 @@ const DYNAMIC_CACHE_NAME = `dynamic-${new Date().getTime()}`;
 const STATIC_FILES = [
     //admin
     "/static/admin/main.css",
-    "/static/admin/components/jodit_editor.min.css",
-    "/static/admin/components/jodit_editor.min.js",
     //pwa
     "/sw.js",
     "/manifest.webmanifest",

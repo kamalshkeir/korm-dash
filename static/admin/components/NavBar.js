@@ -59,9 +59,18 @@ class NavBar extends HTMLElement {
     setupEventListeners() {
         // Handle click on sidebar to expand
         this.addEventListener('click', (e) => {
+            // Si c'est le logo, rediriger vers la page d'accueil
             if (e.target.classList.contains("logo-text")) {
-                window.location.href = "/"
+                window.location.href = "/";
+                return;
             }
+            
+            // Si c'est un lien de navigation, laisser le comportement par défaut
+            if (e.target.closest('.nav-item')) {
+                return; // Ne pas intercepter les clics sur les liens
+            }
+            
+            // Sinon, gérer l'expansion/collapse de la sidebar
             if (window.innerWidth > 768) {
                 this.classList.toggle('expanded');
                 document.querySelector('.main-content')?.classList.toggle('full-width');

@@ -1,22 +1,13 @@
 let adminPath = document.body.dataset.adminPath
 
-const client = new Kactor({
-    // address: window.location.host,
-    // path: "/ws/kactor",
-    // secure: false,
-    onOpen: () => {
-        console.log("connected as", client.id)
-        client.subscribe("korm_db_dashboard_nm", "", (data,_) => {
-            console.log("got on korm_db_dashboard_nm",data)
-            updateNodesUI(data)
-        }).then(async subscription => {
-            if (!subscription) {
-                new Error("Subscription failed");
-                return;
-            }
-            console.log("✓ Subscribed to topic");
-        }).catch(err => new Error(err));
-    }
+BusClient.Client.NewClient({
+    Secure: window.location.protocol == 'http:' ? false : true
+}).then(client => {
+    console.log("connected as", client.Id)
+    client.Subscribe("korm_db_dashboard_nm", (data, _) => {
+        // console.log("got on korm_db_dashboard_nm", data);
+        updateNodesUI(data);
+    });
 });
 
 

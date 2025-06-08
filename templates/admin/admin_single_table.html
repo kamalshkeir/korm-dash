@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {{template "head" .}}
-    <link rel="stylesheet" href="{{$.static_url}}/admin/components/jodit_editor.min.css">
+    <link rel="preload" href="{{$.static_url}}/admin/components/jodit_editor_docache.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{{$.static_url}}/admin/components/jodit_editor_docache.min.css"></noscript>
     <link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/single-table.css">
     <title>{{.table}}</title>
 </head>
@@ -76,11 +77,14 @@
         </div>
     </div>
 
-    <script src="{{$.static_url}}/kactor.js"></script>
+    <div id="nmenabled" data-value="{{$.nodemanager_enabled}}"></div>
+    {{if $.nodemanager_enabled}}
+        <script src="{{$.static_url}}/ksps.js"></script>
+    {{end}}
+    <script src="{{$.static_url}}/admin/components/jodit_editor_docache.min.js" async></script>
     <script src="{{$.static_url}}/admin/components/DataTable.js" type="module"></script>
-    <script src="{{$.static_url}}/admin/components/jodit_editor.min.js"></script>
     <script src="{{$.static_url}}/admin/js/single_table.js" type="module"></script>
-    {{template "admin_pwa"}}
+    <!-- {{template "admin_pwa"}} -->
 </body>
 
 </html>

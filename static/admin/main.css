@@ -1,6 +1,10 @@
 @font-face {
     font-family: 'Quicksand';
     src: url('https://cdn.jsdelivr.net/gh/kamalshkeir/korm-dash@master/static/admin/Quicksand-VariableFont_wght.ttf');
+    ascent-override: 105%;
+    descent-override: 35%;
+    line-gap-override: 10%;
+    font-display: swap;
 }
 
 :root {
@@ -21,6 +25,7 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Quicksand',-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-display: swap;
 }
 
 /* Scrollbar */

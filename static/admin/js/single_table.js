@@ -15,7 +15,7 @@ window.addEventListener('beforeunload', () => {
 
 document.addEventListener("DOMContentLoaded", () => {
     let serverData = null;
-    
+
     // Pagination handlers
     prevButton?.addEventListener('click', () => {
         if (page > 1) {
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fetch(`${adminPath}/tables/${tableName}/search`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     "query": search.ssearch.value,
                     "page_num": `${page}`
                 })
@@ -57,38 +57,31 @@ document.addEventListener("DOMContentLoaded", () => {
                 serverData = data.success;
                 table.tableData = serverData;
                 currentPageSpan.textContent = `Page ${page}`;
-                
+
                 // Calculate if we're on the last page
                 const totalPages = Math.ceil(serverData.total / 10); // Assuming 10 per page
                 nextButton.disabled = page >= totalPages;
                 prevButton.disabled = page <= 1;
-                
+
                 // Update page display
                 currentPageSpan.textContent = `Page ${page} of ${totalPages}`;
             }
         });
-    }    
-
-    const client = new Kactor({
-        // address: window.location.host,
-        // path: "/ws/kactor",
-        // id: "korm_db_dashboard_hooks-client_js",
-        // secure: false,
-        onOpen: () => {
-            console.log("connected as",client.id)
-            client.subscribe("korm_db_dashboard_hooks", "", () => {
+    }
+    let nmenabled = document.getElementById("nmenabled");
+    if (nmenabled && nmenabled.dataset.value == "true") {
+        BusClient.Client.NewClient({
+            Id: "korm_db_dashboard_hooks-client_js",
+            Secure: window.location.protocol == 'http:' ? false : true
+        }).then(client => {
+            console.log("yesss connected ws", client)
+            client.Subscribe("korm_db_dashboard_hooks", () => {
                 setTimeout(() => {
                     loadTableData()
-                },200)
-            }).then(async subscription => {
-                if (!subscription) {
-                    new Error("Subscription failed");
-                    return;
-                }
-                console.log("✓ Subscribed to topic");
-            }).catch(err => new Error(err));
-        }
-    });
+                }, 200)
+            });
+        });
+    }
 
     // Handle import button
     document.querySelector('.import-btn').addEventListener('click', () => {
@@ -97,13 +90,13 @@ document.addEventListener("DOMContentLoaded", () => {
         input.accept = '.csv,.json';
         input.style.display = 'none';
         document.body.appendChild(input);
-        
+
         input.click();
-        
+
         input.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            
+
             const formData = new FormData();
             formData.append('thefile', file);
             formData.append('table', tableName);
@@ -111,23 +104,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: 'POST',
                 body: formData
             }).then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    Notif.New({
-                        title: 'Success',
-                        message: 'Data imported successfully',
-                        type: 'success'
-                    }).show();
-                    window.location.reload();
-                } else {
-                    Notif.New({
-                        title: 'Error',
-                        message: data.error || 'Import failed',
-                        type: 'error'
-                    }).show();
-                }
-            });
-            
+                .then(data => {
+                    if (data.success) {
+                        Notif.New({
+                            title: 'Success',
+                            message: 'Data imported successfully',
+                            type: 'success'
+                        }).show();
+                        window.location.reload();
+                    } else {
+                        Notif.New({
+                            title: 'Error',
+                            message: data.error || 'Import failed',
+                            type: 'error'
+                        }).show();
+                    }
+                });
+
             document.body.removeChild(input);
         });
     });
@@ -242,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     ...table.data.slice(rowIndex + 1)
                                 ];
                             }
-                        } else if (result.error){
+                        } else if (result.error) {
                             Notif.New({
                                 title: 'Error Fetch',
                                 message: result.error,
@@ -308,45 +301,45 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                         }
                     });
-                    
+
                     // Add required field
                     data.set("table", tableName);
-                    data.set("pk",document.body.dataset.pk)
+                    data.set("pk", document.body.dataset.pk)
                     // Send the request
                     fetch(`${adminPath}/create/row`, {
                         method: 'POST',
                         body: data
                     })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            Notif.New({
-                                title: 'Success',
-                                message: 'Record created successfully',
-                                type: 'success',
-                                duration: 3000
-                            }).show()
-                            closePanel(panel);
-                            if (result.inserted) {
-                                table.data = [result.inserted, ...table.data];
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                Notif.New({
+                                    title: 'Success',
+                                    message: 'Record created successfully',
+                                    type: 'success',
+                                    duration: 3000
+                                }).show()
+                                closePanel(panel);
+                                if (result.inserted) {
+                                    table.data = [result.inserted, ...table.data];
+                                }
+                            } else {
+                                Notif.New({
+                                    title: 'Error Fetch',
+                                    message: result.error,
+                                    type: 'error',
+                                    duration: 3000
+                                }).show()
                             }
-                        } else {
+                        })
+                        .catch(error => {
                             Notif.New({
-                                title: 'Error Fetch',
-                                message: result.error,
+                                title: 'Error Submit Form',
+                                message: error,
                                 type: 'error',
                                 duration: 3000
                             }).show()
-                        }
-                    })
-                    .catch(error => {
-                        Notif.New({
-                            title: 'Error Submit Form',
-                            message: error,
-                            type: 'error',
-                            duration: 3000
-                        }).show()
-                    });
+                        });
                 });
             }
         });
@@ -428,7 +421,7 @@ function generateForm(data) {
 
         const type = columns[col];
         const dbType = dbcolumns[col];
-        
+
         let input = '';
 
         // Helper to check if field is an image type
@@ -514,7 +507,7 @@ function generateForm(data) {
                     ${readOnlyAttr}
                     ${isEdit ? 'placeholder="Leave empty to keep current password"' : ''}>
             `;
-        } else if ( dbType && dbType.toLowerCase() === 'text') {
+        } else if (dbType && dbType.toLowerCase() === 'text') {
             input = `<textarea class="editor" name="${col}" id="${col}">${isEdit ? rowData[col] || '' : ''}</textarea>`;
         } else {
             input = `<input type="text" id="${col}" name="${col}" class="form-control input" ${readOnlyAttr} value="${isEdit ? rowData[col] || '' : ''}">`;
@@ -614,6 +607,6 @@ function setupJoditEditor(panel) {
     });
 }
 // Make generateForm available to DataTable component
-window.generateForm = generateForm; 
+window.generateForm = generateForm;
 
 
