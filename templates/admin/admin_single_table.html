@@ -1,90 +1,88 @@
-<!DOCTYPE html>
-<html lang="en">
+{{template "admin_base" .}}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{template "head" .}}
-    <link rel="preload" href="{{$.static_url}}/admin/components/jodit_editor_docache.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+{{define "admin_css"}}
+<link rel="preload" href="{{$.static_url}}/admin/components/jodit_editor_docache.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="{{$.static_url}}/admin/components/jodit_editor_docache.min.css"></noscript>
     <link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/single-table.css">
-    <title>{{.table}}</title>
-</head>
+{{end}}
 
+{{define "admin_title"}}{{.table}}{{end}}
 
-<body data-path="{{$.admin_path}}" data-table="{{$.table}}" data-pk="{{$.pk}}">
-    <div class="app-layout">
-        <nav-bar id="mainNav"></nav-bar>
-        <main class="main-content">
-            <app-header titre="<a href='{{$.admin_path}}/tables' style='color: #e5e5e5;text-decoration: none;'>Tables</a> / {{$.table}}" username="{{$.User.Username}}" email="{{$.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
-            <div class="content-area" style="margin-top: 100px 0px;">
-                <div class="table-header">
-                    <form class="table-search">
-                        <svg viewBox="0 0 24 24" class="search-icon">
-                            <path
-                                d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+{{define "admin_main_content"}}
+<div class="app-layout">
+    <nav-bar id="mainNav"></nav-bar>
+    <main class="main-content">
+        <app-header titre="<a href='{{$.admin_path}}/tables' style='color: #e5e5e5;text-decoration: none;'>Tables</a> / {{$.table}}" username="{{$.User.Username}}" email="{{$.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
+        <div class="content-area" style="margin-top: 100px 0px;">
+            <div class="table-header">
+                <form class="table-search">
+                    <svg viewBox="0 0 24 24" class="search-icon">
+                        <path
+                            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                    </svg>
+                    <input type="text" name="ssearch" id="ssearch" placeholder="id > 10 AND name LIKE '%John%'" class="search-input">
+                    <button type="submit" style="display: none;"></button>
+                </form>
+                <div class="table-actions">
+                    <button class="btn import-btn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M5 20h14v-2H5v2zm0-10h4v6h6v-6h4l-7-7-7 7z"/>
                         </svg>
-                        <input type="text" name="ssearch" id="ssearch" placeholder="id > 10 AND name LIKE '%John%'" class="search-input">
-                        <button type="submit" style="display: none;"></button>
-                    </form>
-                    <div class="table-actions">
-                        <button class="btn import-btn">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M5 20h14v-2H5v2zm0-10h4v6h6v-6h4l-7-7-7 7z"/>
-                            </svg>
-                            Import
-                        </button>
-                        <button class="btn new-record">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                            </svg>
-                            New record
-                        </button>
-                    </div>
-                </div>
-
-                <data-table></data-table>
-                <div class="pagination-container">
-                    <button class="prev-page">Previous</button>
-                    <span class="current-page">Page 1</span>
-                    <button class="next-page">Next</button>
+                        Import
+                    </button>
+                    <button class="btn new-record">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                        New record
+                    </button>
                 </div>
             </div>
-        </main>
-    </div>
 
-    <!-- Edit Panel -->
-    <div id="editWrapper">
-        <div class="panel-overlay"></div>
-        <div id="editPanel" class="side-panel">
-            <div class="panel-header">
-                <h2 class="panel-title">Edit record</h2>
-                <button class="panel-close">×</button>
+            <data-table></data-table>
+            <div class="pagination-container">
+                <button class="prev-page">Previous</button>
+                <span class="current-page">Page 1</span>
+                <button class="next-page">Next</button>
             </div>
-            <div class="panel-content"></div>
         </div>
-    </div>
+    </main>
+</div>
 
-    <!-- Create Panel -->
-    <div id="createWrapper">
-        <div class="panel-overlay"></div>
-        <div id="createPanel" class="side-panel">
-            <div class="panel-header">
-                <h2 class="panel-title">New record</h2>
-                <button class="panel-close">×</button>
-            </div>
-            <div class="panel-content"></div>
+<!-- Edit Panel -->
+<div id="editWrapper">
+    <div class="panel-overlay"></div>
+    <div id="editPanel" class="side-panel">
+        <div class="panel-header">
+            <h2 class="panel-title">Edit record</h2>
+            <button class="panel-close">×</button>
         </div>
+        <div class="panel-content"></div>
     </div>
+</div>
 
-    <div id="nmenabled" data-value="{{$.nodemanager_enabled}}"></div>
+<!-- Create Panel -->
+<div id="createWrapper">
+    <div class="panel-overlay"></div>
+    <div id="createPanel" class="side-panel">
+        <div class="panel-header">
+            <h2 class="panel-title">New record</h2>
+            <button class="panel-close">×</button>
+        </div>
+        <div class="panel-content"></div>
+    </div>
+</div>
+
+<div id="nmenabled" data-value="{{$.nodemanager_enabled}}"></div>
+{{end}}
+
+{{define "admin_js"}}
     {{if $.nodemanager_enabled}}
         <script src="{{$.static_url}}/ksps.js"></script>
     {{end}}
     <script src="{{$.static_url}}/admin/components/jodit_editor_docache.min.js" async></script>
     <script src="{{$.static_url}}/admin/components/DataTable.js" type="module"></script>
     <script src="{{$.static_url}}/admin/js/single_table.js" type="module"></script>
-    <!-- {{template "admin_pwa"}} -->
-</body>
+{{end}}
 
-</html>
+

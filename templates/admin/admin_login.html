@@ -1,20 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
+{{template "admin_base" .}}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{template "head" .}}
-    <link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/login.css">
-    <title>Login - Admin</title>
-    <script>
-        // Check darkMode instead of theme to match dashboard
-        const isDark = localStorage.getItem('darkMode') === 'true';
-        document.documentElement.classList.toggle('dark', isDark);
-    </script>
-</head>
+{{define "admin_title"}}Login{{end}}
 
-<body>
+{{define "admin_css"}}
+<link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/login.css">
+<script>
+    // Check darkMode instead of theme to match dashboard
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    document.documentElement.classList.toggle('dark', isDark);
+</script>
+{{end}}
+
+{{define "admin_main_content"}}
     <div class="login-container">
         <div class="login-box">
             <div class="login-header">
@@ -50,13 +47,12 @@
             </form>
         </div>
     </div>
+{{end}}
 
-    <script src="{{$.static_url}}/admin/js/login.js"></script>
+{{define "admin_js"}}
+<script src="{{$.static_url}}/admin/js/login.js"></script>
     <script>
         const handleSubmitLogin = initLogin("{{$.admin_path}}");
         document.querySelector('.login-form').onsubmit = handleSubmitLogin;
     </script>
-    {{template "admin_pwa"}}
-</body>
-
-</html>
+{{end}}

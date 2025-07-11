@@ -1,65 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{template "head" .}}
-    <link rel="stylesheet" href="{{.static_url}}/admin/css/traces.css">
-    <title>Admin - Trace Explorer</title>
-</head>
-<body>
-    <div class="app-layout">
-        <nav-bar id="mainNav"></nav-bar>
-        <main class="main-content">
-            <app-header titre="Trace Explorer" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
-            <div class="content-area">
-                <header>
-                    <div class="search-container">
-                        <input type="text" id="search-input" placeholder="Search by span name or trace ID...">
-                    </div>
-                    <div class="controls">
-                        <select id="refresh-interval" class="refresh-select">
-                            <option value="0">0s</option>
-                            <option value="2000" selected>2s</option>
-                            <option value="5000">5s</option>
-                            <option value="10000">10s</option>
-                            <option value="30000">30s</option>
-                            <option value="60000">1m</option>
-                        </select>
-                        <button onclick="refreshTraces()" data-tooltip="Refresh">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                        </button>
-                        <button onclick="clearTraces()" data-tooltip="Clear">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </div>
-                </header>
+{{template "admin_base" .}}
+
+{{define "admin_css"}}
+<link rel="stylesheet" href="{{.static_url}}/admin/css/traces.css">
+{{end}}
+
+{{define "admin_title"}}Trace Explorer{{end}}
+
+{{define "admin_main_content"}}
+<div class="app-layout">
+    <nav-bar id="mainNav"></nav-bar>
+    <main class="main-content">
+        <app-header titre="Trace Explorer" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
+        <div class="content-area">
+            <header>
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Search by span name or trace ID...">
+                </div>
+                <div class="controls">
+                    <select id="refresh-interval" class="refresh-select">
+                        <option value="0">0s</option>
+                        <option value="2000" selected>2s</option>
+                        <option value="5000">5s</option>
+                        <option value="10000">10s</option>
+                        <option value="30000">30s</option>
+                        <option value="60000">1m</option>
+                    </select>
+                    <button onclick="refreshTraces()" data-tooltip="Refresh">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                    <button onclick="clearTraces()" data-tooltip="Clear">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            </header>
+            
+            <main>
+                <div class="traces-list">
+                    <h2>Traces</h2>
+                    <div id="traces-container"></div>
+                </div>
                 
-                <main>
-                    <div class="traces-list">
-                        <h2>Traces</h2>
-                        <div id="traces-container"></div>
-                    </div>
-                    
-                    <div class="trace-details">
-                        <h2>Trace Details</h2>
-                        <div id="trace-details-container"></div>
-                    </div>
-                </main>
-            </div>
-        </main>
-    </div>
+                <div class="trace-details">
+                    <h2>Trace Details</h2>
+                    <div id="trace-details-container"></div>
+                </div>
+            </main>
+        </div>
+    </main>
+</div>
+<script>
+    var adminPath = "{{$.admin_path}}";
+</script>
+{{end}}
 
-
-    <script>
-        var adminPath = "{{$.admin_path}}";
-    </script>
-    <script src="{{.static_url}}/admin/js/main.js"></script>
-    <script src="{{.static_url}}/admin/js/traces.js"></script>
-    {{template "admin_pwa"}}
-</body>
-</html>
+{{define "admin_js"}}
+<script src="{{.static_url}}/admin/js/traces.js"></script>
+{{end}}

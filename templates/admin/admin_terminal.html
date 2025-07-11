@@ -1,42 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
+{{template "admin_base" .}}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{template "head" .}}
-    <link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/terminal.css">
-    <title>Terminal</title>
-</head>
+{{define "admin_css"}}
+<link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/terminal.css">
+{{end}}
 
-<body>
-    <div class="app-layout">
-        <nav-bar id="mainNav"></nav-bar>
-        <main class="main-content">
-            <app-header titre="Terminal" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
-            <div class="content-area">
-                <div class="terminal-container">
-                    <div class="terminal-header">
-                        <div class="terminal-button close"></div>
-                        <div class="terminal-button minimize"></div>
-                        <div class="terminal-button maximize"></div>
-                    </div>
-                    <div class="terminal">
-                        <div id="output"></div>
-                        <div class="input-line">
-                            <span class="prompt">$</span>
-                            <input type="text" id="command-input" autofocus>
-                        </div>
+{{define "admin_title"}}Terminal{{end}}
+
+{{define "admin_main_content"}}
+<div class="app-layout">
+    <nav-bar id="mainNav"></nav-bar>
+    <main class="main-content">
+        <app-header titre="Terminal" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
+        <div class="content-area">
+            <div class="terminal-container">
+                <div class="terminal-header">
+                    <div class="terminal-button close"></div>
+                    <div class="terminal-button minimize"></div>
+                    <div class="terminal-button maximize"></div>
+                </div>
+                <div class="terminal">
+                    <div id="output"></div>
+                    <div class="input-line">
+                        <span class="prompt">$</span>
+                        <input type="text" id="command-input" autofocus>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
-    <script>
-        var adminPath = "{{$.admin_path}}";
-    </script>
-    <script src="{{$.static_url}}/admin/js/main.js"></script>
-    <script src="{{$.static_url}}/admin/js/terminal.js"></script>
-</body>
+        </div>
+    </main>
+</div>
+<script>
+    var adminPath = "{{$.admin_path}}";
+</script>
+{{end}}
 
-</html>
+{{define "admin_js"}}
+<script src="{{$.static_url}}/admin/js/terminal.js"></script>
+{{end}}
