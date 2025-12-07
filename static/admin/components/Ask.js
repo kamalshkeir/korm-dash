@@ -153,7 +153,7 @@ class ask extends HTMLElement {
 
 customElements.define("k-ask", ask);
 
-export async function Ask(message) {
+async function Ask(message) {
     if (ask.instance) {
         ask.instance.remove();
     }
