@@ -204,7 +204,7 @@ class Client {
      * @param {Object} opts - Options de connexion
      * @returns {Promise<Client>}
      */
-    static async NewClient(opts) {
+    static async NewClient(opts = {}) {
         if (opts.Autorestart && !opts.RestartEvery) {
             opts.RestartEvery = 10000; // 10 secondes
         }
