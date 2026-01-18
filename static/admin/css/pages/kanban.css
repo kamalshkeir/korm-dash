@@ -199,6 +199,11 @@
     color: #64748b;
     margin-bottom: 1rem;
     line-height: 1.4;
+    max-width: 300px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    white-space: pre-wrap;
 }
 
 .dark-mode .task-desc {
