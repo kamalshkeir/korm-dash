@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedColor = localStorage.getItem('theme-color');
     if (savedColor) {
         document.documentElement.style.setProperty('--theme-color', savedColor);
-        document.documentElement.style.setProperty('--theme-color-hover', 
+        document.documentElement.style.setProperty('--theme-color-hover',
             adjustBrightness(savedColor, -10));
     }
     // Configure navigation links
@@ -28,6 +28,19 @@ document.addEventListener('DOMContentLoaded', () => {
             exact: true
         }
     ];
+
+    if (kanbanEnabled == "true") {
+        navLinks.push({
+            href: `${admdmdPartth}/kanbans`,
+            label: 'Kanban',
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 5v11"/>
+            <path d="M12 5v6"/>
+            <path d="M18 5v14"/>
+            </svg>`,
+            exact: false
+        });
+    }
     if (terminalEnabled === "true") {
         navLinks.push({
             href: `${admdmdPartth}/terminal`,

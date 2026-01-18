@@ -2,7 +2,7 @@ class modalEl extends HTMLElement {
     static css = `
         :host dialog {
             padding: 30px 50px;
-            background: rgba(255,255,255,.95);
+            background: rgba(239, 236, 236, 0.95);
             border-radius: .5rem;
             border: none;
             outline: none;
@@ -28,11 +28,11 @@ class modalEl extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
-        
+
         // Add base styles
         let style = document.createElement("style");
         style.innerHTML = modalEl.css;
-        
+
         // Add styles from document that target k-modal
         const globalStyles = Array.from(document.styleSheets)
             .flatMap(sheet => {
@@ -45,15 +45,15 @@ class modalEl extends HTMLElement {
             .filter(rule => rule.selectorText?.includes('k-modal'))
             .map(rule => rule.cssText)
             .join('\n');
-            
+
         style.innerHTML += globalStyles;
-        
+
         this.shadowRoot.append(style);
         document.body.appendChild(this);
-        this.last_left=0;
-        this.last_right=0;
-        this.last_top=0;
-        this.last_bottom=0;
+        this.last_left = 0;
+        this.last_right = 0;
+        this.last_top = 0;
+        this.last_bottom = 0;
     }
 
     get head() {
@@ -112,7 +112,7 @@ class modalEl extends HTMLElement {
     createModal() {
         this.modal = document.createElement("dialog");
         this.modal.classList.add("modal");
-        
+
         // Remove the style attribute handling from here
         this.modal.innerHTML = `
         <div class="header">
@@ -124,16 +124,16 @@ class modalEl extends HTMLElement {
             ${this.body}
         </div>
         `;
-        
+
         this.shadowRoot.append(this.modal);
-        
+
         // Apply dark mode if needed
         if (document.body.classList.contains("dark")) {
             this.modal.style.filter = "invert(1) hue-rotate(180deg)";
             this.modal.style.boxShadow = "0 .4rem .8rem #fff5";
         }
-        
-        this.modal.querySelector(".close").addEventListener("click",(e) => {
+
+        this.modal.querySelector(".close").addEventListener("click", (e) => {
             e.preventDefault();
             this.modal.close();
         });
@@ -155,14 +155,14 @@ async function Modal(head, body, style, fnOnOpen) {
     let a = new modalEl();
     a.head = head || '';
     a.body = body || '';
-    
+
     // Create a style element and append it to the shadow root instead of document.head
     if (style) {
         const styleEl = document.createElement('style');
         styleEl.textContent = style;
         a.shadowRoot.appendChild(styleEl);
     }
-    
+
     a.createModal();
     a.modal.showModal();
     a.handleClickOutside();
@@ -177,3 +177,5 @@ function elementFromHtml(html) {
     template.innerHTML = html.trim();
     return template.content.firstElementChild;
 }
+
+window.Modal = Modal;

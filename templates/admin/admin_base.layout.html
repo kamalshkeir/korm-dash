@@ -1,6 +1,7 @@
 {{define "admin_base"}}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,23 +10,25 @@
     {{template "admin_css" .}}
     <title>Admin - {{template "admin_title" .}}</title>
 </head>
+
 <body data-admin-path="{{$.admin_path}}" data-path="{{$.admin_path}}" data-table="{{$.table}}" data-pk="{{$.pk}}">
     {{template "admin_main_content" .}}
 
     <!-- Components -->
-<script src="{{.static_url}}/admin/components/NavBar.js" type="module"></script>
-<script src="{{.static_url}}/admin/components/AppHeader.js" type="module"></script>
-<script src="{{.static_url}}/admin/components/SlidePanel.js" type="module"></script>
-<script src="{{.static_url}}/admin/components/Notif.js" type="module"></script>
-<script src="{{.static_url}}/admin/components/Ask.js"></script>
+    <script src="{{.static_url}}/admin/components/NavBar.js" type="module"></script>
+    <script src="{{.static_url}}/admin/components/AppHeader.js" type="module"></script>
+    <script src="{{.static_url}}/admin/components/SlidePanel.js" type="module"></script>
+    <script src="{{.static_url}}/admin/components/Notif.js" type="module"></script>
+    <script src="{{.static_url}}/admin/components/Ask.js"></script>
 
     <!-- NAV in main-->
-     <script>
+    <script>
         var admdmdPartth = "{{.admin_path}}";
         var traceEnabled = "{{.trace_enabled}}";
         var terminalEnabled = "{{.terminal_enabled}}";
         var nodeManagerEnabled = "{{.nodemanager_enabled}}";
-     </script>
+        var kanbanEnabled = "{{.kanban_enabled}}"
+    </script>
     <script src="{{.static_url}}/admin/js/main.js"></script>
     <!-- PWA -->
     <script>
@@ -42,7 +45,7 @@
             meta1.content = "Korm"
             meta1.name = "application-name"
         }
-    
+
         if (!document.querySelector("meta[name=\"apple-mobile-web-app-title\"]")) {
             meta2 = document.createElement("meta");
             meta2.content = "Korm"
@@ -58,7 +61,7 @@
             meta4.content = "#ffffff"
             meta4.name = "msapplication-TileColor"
         }
-    
+
         if (isChromium !== null) {
             window.addEventListener('load', () => {
                 if ('serviceWorker' in navigator) {
@@ -87,5 +90,6 @@
     </script>
     {{template "admin_js" .}}
 </body>
+
 </html>
 {{end}}

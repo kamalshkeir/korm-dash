@@ -1,0 +1,313 @@
+{{template "admin_base" .}}
+
+{{define "admin_css"}}
+<link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/kanban.css">
+{{end}}
+
+{{define "admin_title"}}Kanban{{end}}
+
+{{define "admin_main_content"}}
+<div class="app-layout">
+    <nav-bar id="mainNav"></nav-bar>
+    <main class="main-content">
+        <app-header titre="{{.Board.Name}}" username="{{.User.Username}}" email="{{.User.Email}}"
+            logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"
+            return_url="{{$.admin_path}}/kanbans"></app-header>
+        <div class="content-area">
+            <div class="kanban-board" id="kanbanBoard" data-board-id="{{.Board.Id}}">
+                <!-- To Do Column -->
+                <div class="kanban-column" id="todo-column">
+                    <div class="kanban-column-header">
+                        <h3>To Do <span class="count" id="count-todo">0</span></h3>
+                        <button class="add-task-btn" onclick="addTaskDisplay('todo')">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="kanban-tasks" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="todo">
+                        {{range .Tasks}}
+                        {{if eq .Status "todo"}}
+                        <div class="kanban-task" draggable="true" ondragstart="drag(event)" id="task-{{.Id}}"
+                            data-id="{{.Id}}">
+                            <button class="delete-task-btn" onclick="deleteTask(event)" title="Delete task">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                    </path>
+                                </svg>
+                            </button>
+                            {{if .Priority}}
+                            <div class="task-badge {{.Priority}}">{{.Priority}}</div>
+                            {{end}}
+                            <div class="task-title">{{.Title}}</div>
+                            <p class="task-desc">{{.Description}}</p>
+                        </div>
+                        {{end}}
+                        {{end}}
+                    </div>
+                </div>
+
+                <!-- In Progress Column -->
+                <div class="kanban-column" id="doing-column">
+                    <div class="kanban-column-header">
+                        <h3>In Progress <span class="count" id="count-doing">0</span></h3>
+                        <button class="add-task-btn" onclick="addTaskDisplay('doing')">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="kanban-tasks" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="doing">
+                        {{range .Tasks}}
+                        {{if eq .Status "doing"}}
+                        <div class="kanban-task" draggable="true" ondragstart="drag(event)" id="task-{{.Id}}"
+                            data-id="{{.Id}}">
+                            <button class="delete-task-btn" onclick="deleteTask(event)" title="Delete task">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                    </path>
+                                </svg>
+                            </button>
+                            {{if .Priority}}
+                            <div class="task-badge {{.Priority}}">{{.Priority}}</div>
+                            {{end}}
+                            <div class="task-title">{{.Title}}</div>
+                            <p class="task-desc">{{.Description}}</p>
+                        </div>
+                        {{end}}
+                        {{end}}
+                    </div>
+                </div>
+
+                <!-- Done Column -->
+                <div class="kanban-column" id="done-column">
+                    <div class="kanban-column-header">
+                        <h3>Done <span class="count" id="count-done">0</span></h3>
+                        <button class="add-task-btn" onclick="addTaskDisplay('done')">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="kanban-tasks" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="done">
+                        {{range .Tasks}}
+                        {{if eq .Status "done"}}
+                        <div class="kanban-task" draggable="true" ondragstart="drag(event)" id="task-{{.Id}}"
+                            data-id="{{.Id}}">
+                            <button class="delete-task-btn" onclick="deleteTask(event)" title="Delete task">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                    </path>
+                                </svg>
+                            </button>
+                            {{if .Priority}}
+                            <div class="task-badge {{.Priority}}">{{.Priority}}</div>
+                            {{end}}
+                            <div class="task-title">{{.Title}}</div>
+                            <p class="task-desc">{{.Description}}</p>
+                        </div>
+                        {{end}}
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{{end}}
+
+{{define "admin_js"}}
+<script>
+    var adminPath = "{{$.admin_path}}"
+</script>
+<script src="{{$.static_url}}/admin/components/Modal.js" type="module"></script>
+<script src="{{$.static_url}}/admin/js/kanban.js"></script>
+<script>
+    // Styles for Task Modal (same clean style as Boards)
+    const taskModalStyle = `
+        :host { color: #1e293b; }
+        /* Force header title to be dark */
+        .header h1 { color: #1e293b !important; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+            transition: all 0.2s;
+            color: #1e293b;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        label { 
+            font-weight: 600; 
+            font-size: 0.875rem; 
+            color: #475569;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        .modal-footer { 
+            display: flex; 
+            justify-content: flex-end; 
+            margin-top: 2rem; 
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            background: #3b82f6;
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #2563eb; transform: translateY(-1px); }
+    `;
+
+    async function addTaskDisplay(status) {
+        const modalBody = `
+            <input type="hidden" id="taskStatus" value="${status}">
+            <div class="form-group">
+                <label for="taskTitle">Task Title</label>
+                <input type="text" id="taskTitle" class="form-control" placeholder="e.g. Fix Login Bug">
+            </div>
+            <div class="form-group">
+                <label for="taskPriority">Priority</label>
+                <select id="taskPriority" class="form-control">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="taskDesc">Description</label>
+                <textarea id="taskDesc" class="form-control" rows="3" placeholder="Optional details..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="saveTaskBtn" class="btn btn-primary">Create Task</button>
+            </div>
+        `;
+
+        await Modal(`Add to ${status}`, modalBody, taskModalStyle, (modalInstance) => {
+            const btn = modalInstance.shadowRoot.getElementById('saveTaskBtn');
+            const titleInput = modalInstance.shadowRoot.getElementById('taskTitle');
+            const descInput = modalInstance.shadowRoot.getElementById('taskDesc');
+            const priorityInput = modalInstance.shadowRoot.getElementById('taskPriority');
+
+            setTimeout(() => titleInput.focus(), 100);
+
+            btn.addEventListener('click', async () => {
+                const title = titleInput.value;
+                const description = descInput.value;
+                const priority = priorityInput.value;
+                const boardId = document.getElementById('kanbanBoard').dataset.boardId;
+
+                if (!title) {
+                    titleInput.style.borderColor = 'red';
+                    return;
+                }
+
+                btn.textContent = 'Saving...';
+                btn.disabled = true;
+
+                try {
+                    const response = await fetch(adminPath + '/kanbans/tasks/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            board_id: parseInt(boardId),
+                            title,
+                            description,
+                            status,
+                            priority
+                        })
+                    });
+
+                    if (response.ok) {
+                        modalInstance.close();
+                        window.location.reload();
+                    } else {
+                        alert('Failed to create task');
+                        btn.textContent = 'Create Task';
+                        btn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred');
+                    btn.disabled = false;
+                }
+            });
+        });
+    }
+
+    async function deleteTask(e) {
+        e.stopPropagation();
+        if (!confirm('Are you sure you want to delete this task?')) return;
+
+        const taskEl = e.target.closest('.kanban-task');
+        const taskId = taskEl.dataset.id;
+        const btn = e.target.closest('button');
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '...';
+
+        try {
+            const response = await fetch(adminPath + '/kanbans/tasks/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: parseInt(taskId) })
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Failed to delete task');
+                btn.innerHTML = originalContent;
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error deleting task');
+            btn.innerHTML = originalContent;
+        }
+    }
+
+    // Function called by kanban.js when a drop happens
+    async function onTaskDrop(status, taskIds) {
+        try {
+            const response = await fetch(adminPath + '/kanbans/tasks/move', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: status,
+                    task_ids: taskIds
+                })
+            });
+            if (!response.ok) {
+                console.error("Failed to move task");
+            }
+        } catch (error) {
+            console.error('Error moving task:', error);
+        }
+    }
+</script>
+{{end}}
