@@ -11,31 +11,19 @@ class ClientSubscription {
     }
 }
 
-class ClientSubscriber {
-    constructor(client, id = '', topic = '') {
-        this.client = client;
-        this.Id = id;
-        this.Topic = topic;
-        this.Ch = null; // Pas utilisé en JS
-        this.Conn = null; // Référence WebSocket
-    }
 
-    Unsubscribe() {
-        this.client.Unsubscribe(this.Topic);
-    }
-}
 
 class ClientAck {
     constructor(id, client, timeout, cancelled = false) {
-        this.ID = id;
-        this.Client = client;
-        this.timeout = timeout;
-        this.cancelled = cancelled;
-        this.responses = null;
-        this.status = null;
-        this.done = false;
-        this.responsePromise = null;
-        this.statusPromise = null;
+        this._id = id;           // privé
+        this._client = client;   // privé
+        this._timeout = timeout; // privé
+        this._cancelled = cancelled;
+        this._responses = null;
+        this._status = null;
+        this._done = false;
+        this._responsePromise = null;
+        this._statusPromise = null;
     }
 
     /**
@@ -43,7 +31,7 @@ class ClientAck {
      * @returns {Promise<Object>} Map des réponses
      */
     async Wait() {
-        if (this.cancelled || this.done) {
+        if (this._cancelled || this._done) {
             return {};
         }
 
@@ -51,9 +39,9 @@ class ClientAck {
             const timeoutId = setTimeout(() => {
                 this.Cancel();
                 resolve({});
-            }, this.timeout);
+            }, this._timeout);
 
-            this.responsePromise = (responses) => {
+            this._responsePromise = (responses) => {
                 clearTimeout(timeoutId);
                 resolve(responses);
             };
@@ -65,7 +53,7 @@ class ClientAck {
      * @returns {Promise<{response: Object, success: boolean}>}
      */
     async WaitAny() {
-        if (this.cancelled || this.done) {
+        if (this._cancelled || this._done) {
             return { response: {}, success: false };
         }
 
@@ -73,9 +61,9 @@ class ClientAck {
             const timeoutId = setTimeout(() => {
                 this.Cancel();
                 resolve({ response: {}, success: false });
-            }, this.timeout);
+            }, this._timeout);
 
-            this.responsePromise = (responses) => {
+            this._responsePromise = (responses) => {
                 clearTimeout(timeoutId);
                 // Retourner le premier ACK reçu
                 for (const [clientID, response] of Object.entries(responses)) {
@@ -92,15 +80,15 @@ class ClientAck {
      * @returns {Promise<Object>} Map du statut
      */
     async GetStatus() {
-        if (this.cancelled || this.done) {
+        if (this._cancelled || this._done) {
             return {};
         }
 
         // Demander le statut au serveur
-        this.Client.sendMessage({
+        this._client.sendMessage({
             action: 'get_ack_status',
-            ack_id: this.ID,
-            from: this.Client.Id
+            ack_id: this._id,
+            from: this._client.Id
         });
 
         return new Promise((resolve) => {
@@ -108,7 +96,7 @@ class ClientAck {
                 resolve({});
             }, 2000); // 2 secondes de timeout
 
-            this.statusPromise = (status) => {
+            this._statusPromise = (status) => {
                 clearTimeout(timeoutId);
                 resolve(status);
             };
@@ -133,48 +121,48 @@ class ClientAck {
      * Annule l'attente des acknowledgments
      */
     Cancel() {
-        if (this.cancelled || this.done) {
+        if (this._cancelled || this._done) {
             return;
         }
 
-        this.cancelled = true;
-        this.done = true;
+        this._cancelled = true;
+        this._done = true;
 
         // Envoyer la demande d'annulation au serveur
-        this.Client.sendMessage({
+        this._client.sendMessage({
             action: 'cancel_ack',
-            ack_id: this.ID,
-            from: this.Client.Id
+            ack_id: this._id,
+            from: this._client.Id
         });
 
         // Nettoyer localement
-        if (this.Client.ackRequests) {
-            this.Client.ackRequests.delete(this.ID);
+        if (this._client.ackRequests) {
+            this._client.ackRequests.delete(this._id);
         }
     }
 
     /**
-     * Traite une réponse ACK du serveur
+     * Traite une réponse ACK du serveur (internal use)
      * @param {Object} responses - Réponses reçues
      */
     handleResponse(responses) {
-        if (this.responsePromise) {
-            this.responsePromise(responses);
-            this.responsePromise = null;
+        if (this._responsePromise) {
+            this._responsePromise(responses);
+            this._responsePromise = null;
         }
-        this.responses = responses;
+        this._responses = responses;
     }
 
     /**
-     * Traite un statut ACK du serveur
+     * Traite un statut ACK du serveur (internal use)
      * @param {Object} status - Statut reçu
      */
     handleStatus(status) {
-        if (this.statusPromise) {
-            this.statusPromise(status);
-            this.statusPromise = null;
+        if (this._statusPromise) {
+            this._statusPromise(status);
+            this._statusPromise = null;
         }
-        this.status = status;
+        this._status = status;
     }
 }
 
@@ -204,7 +192,7 @@ class Client {
      * @param {Object} opts - Options de connexion
      * @returns {Promise<Client>}
      */
-    static async NewClient(opts = {}) {
+    static async NewClient(opts) {
         if (opts.Autorestart && !opts.RestartEvery) {
             opts.RestartEvery = 10000; // 10 secondes
         }
@@ -223,7 +211,7 @@ class Client {
         client.onId = opts.OnId;
         client.onClose = opts.OnClose;
         await client.connect(opts);
-        this.client=client;
+        this.client = client;
         return client;
     }
 
@@ -238,29 +226,29 @@ class Client {
 
         try {
             this.Conn = new WebSocket(url);
-            
+
             // Promesse pour attendre la connexion
             await new Promise((resolve, reject) => {
                 this.Conn.onopen = () => {
                     this.connected = true;
                     console.log(`client connected to ${url}`);
-                    
+
                     // Démarrer les handlers
                     this.messageHandler();
                     this.messageSender();
-                    
+
                     // Ping initial pour enregistrer le client
                     this.sendMessage({
                         action: 'ping',
                         from: this.Id
                     });
-                    
+
                     resolve();
                 };
 
                 this.Conn.onerror = (error) => {
                     if (this.Autorestart) {
-                        console.log(`Connection failed, retrying in ${this.RestartEvery/1000} seconds`);
+                        console.log(`Connection failed, retrying in ${this.RestartEvery / 1000} seconds`);
                         setTimeout(() => {
                             this.connect(opts).then(resolve).catch(reject);
                         }, this.RestartEvery);
@@ -281,7 +269,7 @@ class Client {
 
         } catch (error) {
             if (this.Autorestart) {
-                console.log(`Connection failed, retrying in ${this.RestartEvery/1000} seconds`);
+                console.log(`Connection failed, retrying in ${this.RestartEvery / 1000} seconds`);
                 setTimeout(() => {
                     return this.connect(opts);
                 }, this.RestartEvery);
@@ -292,7 +280,7 @@ class Client {
     }
 
     /**
-     * Gère les messages entrants
+     * Gère les messages entrants (supports wire-level batching)
      */
     messageHandler() {
         if (!this.Conn) return;
@@ -301,8 +289,18 @@ class Client {
             if (this.Done || !this.connected) return;
 
             try {
-                const data = JSON.parse(event.data);
-                this.handleMessage(data);
+                const parsed = JSON.parse(event.data);
+
+                // Detect if it's a batch (array) or single message (object)
+                if (Array.isArray(parsed)) {
+                    // Batch message: array of WsMessage
+                    for (const msg of parsed) {
+                        this.handleMessage(msg);
+                    }
+                } else {
+                    // Single message: WsMessage object
+                    this.handleMessage(parsed);
+                }
             } catch (error) {
                 console.error('WebSocket read error:', error);
                 this.connected = false;
@@ -363,10 +361,6 @@ class Client {
 
         switch (action) {
             case 'pong':
-                // Confirmation de connexion
-                if (this.onId) {
-                    this.onId(data, new ClientSubscriber(this));
-                }
                 break;
 
             case 'publish':
@@ -382,8 +376,8 @@ class Client {
             case 'direct_message':
                 // Message direct vers ce client
                 if (this.onId) {
-                    const payload = data.data;
-                    this.onId({ data: payload }, new ClientSubscriber(this));
+                    // Send simplified Message with just data and from
+                    this.onId({ data: data.data, from: data.from });
                 }
                 break;
 
@@ -431,7 +425,17 @@ class Client {
         const topic = data.topic;
         if (!topic) return;
 
-        const payload = data.data;
+        let msgData = data.data;
+        let msgFrom = data.from;
+
+        // Déballer si c'est un message imbriqué
+        if (msgData && typeof msgData === 'object' && 'data' in msgData) {
+            if (!msgFrom && 'from' in msgData) {
+                msgFrom = msgData.from;
+            }
+            msgData = msgData.data;
+        }
+
         const sub = this.subscriptions.get(topic);
 
         if (sub && sub.active) {
@@ -442,7 +446,7 @@ class Client {
 
             // Exécuter le callback
             setTimeout(() => {
-                sub.callback(payload, unsubFn);
+                sub.callback({ data: msgData, from: msgFrom }, unsubFn);
             }, 0);
         }
     }
@@ -455,9 +459,30 @@ class Client {
         const topic = data.topic;
         if (!topic) return;
 
-        const payload = data.data;
+        let msgData = data.data;
+        let msgFrom = data.from;
         const ackID = data.ack_id;
-        const sub = this.subscriptions.get(topic);
+
+        // Déballer si c'est un message imbriqué
+        if (msgData && typeof msgData === 'object' && 'data' in msgData) {
+            if (!msgFrom && 'from' in msgData) {
+                msgFrom = msgData.from;
+            }
+            msgData = msgData.data;
+        }
+
+        let sub = this.subscriptions.get(topic);
+
+        // Support pour PublishToIDWithAck : rediriger vers onId si c'est un message direct avec ACK
+        const isDirectAck = topic.startsWith(`__direct_${this.Id}`);
+        if (!sub && isDirectAck && this.onId) {
+            sub = {
+                active: true,
+                callback: (msg, unsub) => {
+                    this.onId(msg);
+                }
+            };
+        }
 
         if (sub && sub.active) {
             // Créer fonction d'unsubscribe
@@ -471,7 +496,7 @@ class Client {
                 let errorMsg = '';
 
                 try {
-                    await sub.callback(payload, unsubFn);
+                    await sub.callback({ data: msgData, from: msgFrom }, unsubFn);
                 } catch (error) {
                     success = false;
                     errorMsg = error.message || error.toString();
@@ -522,7 +547,7 @@ class Client {
     Subscribe(topic, callback) {
         if (!this.connected) {
             console.debug('Cannot subscribe: client not connected');
-            return () => {};
+            return () => { };
         }
 
         // Créer la subscription locale
@@ -603,11 +628,13 @@ class Client {
 
     /**
      * Envoi de message vers un serveur distant via le serveur local
-     * @param {string} addr - Adresse du serveur distant
+     * @param {string} addrWithPath - Adresse du serveur distant. if toServer behind proxy 'bus.example.com'
+        address on server localhost:9999, addrWithPath="bus.example.com/ws/bus::localhost:9999"
+        OR addrWithPath="bus.example.com::localhost:9999/ws/bus"
      * @param {any} data - Données à envoyer
      * @param {boolean} secure - Utiliser HTTPS/WSS
      */
-    PublishToServer(addr, data, secure = false) {
+    PublishToServer(addrWithPath, data, secure = false) {
         if (!this.connected) {
             console.debug('Cannot send to server: client not connected');
             return;
@@ -615,9 +642,12 @@ class Client {
 
         this.sendMessage({
             action: 'publish_to_server',
-            to: addr,
+            to: addrWithPath,
             data: data,
-            from: this.Id
+            from: this.Id,
+            status: {
+                is_secure: secure
+            }
         });
     }
 
@@ -705,13 +735,14 @@ class Client {
      * @param {Object} data - Données du message
      */
     handleAckResponse(data) {
-        const ackID = data.ack_id;
+        // Support optimized protocol (flat) or legacy (nested in data)
+        const ackID = data.ack_id || (data.data && data.data.ack_id);
         if (!ackID || !this.ackRequests) return;
 
         const clientAck = this.ackRequests.get(ackID);
         if (!clientAck || clientAck.cancelled) return;
 
-        const responses = data.responses || {};
+        const responses = data.responses || (data.data && data.data.responses) || {};
         clientAck.handleResponse(responses);
     }
 
@@ -720,13 +751,13 @@ class Client {
      * @param {Object} data - Données du message
      */
     handleAckStatus(data) {
-        const ackID = data.ack_id;
+        const ackID = data.ack_id || (data.data && data.data.ack_id);
         if (!ackID || !this.ackRequests) return;
 
         const clientAck = this.ackRequests.get(ackID);
         if (!clientAck || clientAck.cancelled) return;
 
-        const status = data.status || {};
+        const status = data.status || (data.data && data.data.status) || {};
         clientAck.handleStatus(status);
     }
 
@@ -735,7 +766,7 @@ class Client {
      * @param {Object} data - Données du message
      */
     handleAckCancelled(data) {
-        const ackID = data.ack_id;
+        const ackID = data.ack_id || (data.data && data.data.ack_id);
         if (!ackID || !this.ackRequests) return;
 
         // Nettoyer l'ACK local
@@ -877,10 +908,10 @@ class Client {
 
 // Export pour utilisation en module
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { Client, ClientSubscriber, ClientSubscription, ClientAck };
+    module.exports = { Client, ClientSubscription, ClientAck };
 }
 
 // Export pour utilisation en navigateur
 if (typeof window !== 'undefined') {
-    window.BusClient = { Client, ClientSubscriber, ClientSubscription, ClientAck };
+    window.BusClient = { Client, ClientSubscription, ClientAck };
 } 
