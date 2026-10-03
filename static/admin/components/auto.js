@@ -3,15 +3,16 @@ class AutoInput {
     constructor(selector) {
         this.element = document.querySelector(selector);
         if (!this.element) return;
-        
+
         this.words = [];
+        this._disabled = false;
         this.init();
     }
-    
+
     init() {
         // Store original element info before transformation
         this.originalId = this.element.id;
-        
+
         // Get data from attributes
         const wordsAttr = this.element.getAttribute('words');
         if (wordsAttr) {
@@ -21,7 +22,7 @@ class AutoInput {
                 this.words = [];
             }
         }
-        
+
         // Add responsive CSS for mobile if not already added
         if (!document.querySelector('#auto-input-mobile-styles')) {
             const style = document.createElement('style');
@@ -138,12 +139,12 @@ class AutoInput {
             `;
             document.head.appendChild(style);
         }
-        
+
         // Transform the element into an input
         const placeholder = this.element.getAttribute('placeholder') || '';
         const value = this.element.getAttribute('value') || '';
         const name = this.element.getAttribute('name') || this.element.id || ''; // Use ID as fallback
-        
+
         // Replace the element with input + dropdown structure
         this.element.outerHTML = `
             <div class="auto-wrapper" style="
@@ -201,18 +202,18 @@ class AutoInput {
                 ></div>
             </div>
         `;
-        
+
         // Re-select elements after DOM replacement
         this.wrapper = document.querySelector(`[name="${name}"]`).parentElement;
         this.input = this.wrapper.querySelector('.auto-input');
         this.dropdown = this.wrapper.querySelector('.auto-dropdown');
-        
+
         this.bindEvents();
     }
-    
+
     bindEvents() {
         this.selectedIndex = -1; // Track selected item in dropdown
-        
+
         this.input.addEventListener('focus', () => {
             this.input.removeAttribute('readonly');
         });
@@ -222,15 +223,20 @@ class AutoInput {
                 this.input.setAttribute('readonly', true);
             }
         });
-        
+
         this.input.addEventListener('input', (e) => {
+            if (this.disabled) {
+                this.hideDropdown();
+                return;
+            }
             this.handleInput(e.target.value);
             // Don't reset selectedIndex here - let handleInput/renderDropdown manage it
         });
-        
+
         this.input.addEventListener('keydown', (e) => {
+            if (this.disabled) return;
             const items = this.dropdown.querySelectorAll('.auto-item');
-            
+
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 if (items.length > 0) {
@@ -254,7 +260,7 @@ class AutoInput {
                 if (this.dropdown.style.display === 'block' && this.selectedIndex >= 0 && items[this.selectedIndex]) {
                     e.preventDefault();
                     this.selectItem(items[this.selectedIndex]);
-                    
+
                     // Move focus to next element immediately after autocomplete
                     const focusableElements = document.querySelectorAll('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
                     const currentIndex = Array.from(focusableElements).indexOf(this.input);
@@ -267,39 +273,39 @@ class AutoInput {
                 this.selectedIndex = -1;
             }
         });
-        
+
         // Handle clicks on dropdown items
         this.dropdown.addEventListener('click', (e) => {
             if (e.target.classList.contains('auto-item')) {
                 this.selectItem(e.target);
             }
         });
-        
+
         // Handle hover events that respect keyboard selection
         this.dropdown.addEventListener('mouseover', (e) => {
             if (e.target.classList.contains('auto-item')) {
                 const items = this.dropdown.querySelectorAll('.auto-item');
                 const itemIndex = Array.from(items).indexOf(e.target);
-                
+
                 // Only change background if it's not the selected item
                 if (itemIndex !== this.selectedIndex) {
                     e.target.style.backgroundColor = '#f8f9fa';
                 }
             }
         });
-        
+
         this.dropdown.addEventListener('mouseout', (e) => {
             if (e.target.classList.contains('auto-item')) {
                 const items = this.dropdown.querySelectorAll('.auto-item');
                 const itemIndex = Array.from(items).indexOf(e.target);
-                
+
                 // Only remove background if it's not the selected item
                 if (itemIndex !== this.selectedIndex) {
                     e.target.style.backgroundColor = '';
                 }
             }
         });
-        
+
         document.addEventListener('click', (e) => {
             if (!this.wrapper.contains(e.target)) {
                 this.hideDropdown();
@@ -307,7 +313,7 @@ class AutoInput {
             }
         });
     }
-    
+
     highlightItem(items) {
         // Remove highlight from all items
         items.forEach((item, index) => {
@@ -322,24 +328,28 @@ class AutoInput {
             }
         });
     }
-    
+
     selectItem(item) {
         const text = item.textContent.trim();
         this.input.value = text;
         this.hideDropdown();
         this.selectedIndex = -1;
-        
+
         // Trigger input event to notify of change
         this.input.dispatchEvent(new Event('input', { bubbles: true }));
-        
+
         // Trigger custom select event
-        this.input.dispatchEvent(new CustomEvent('select', { 
+        this.input.dispatchEvent(new CustomEvent('select', {
             detail: text,
-            bubbles: true 
+            bubbles: true
         }));
     }
-    
+
     handleInput(value) {
+        if (this.disabled) {
+            this.hideDropdown();
+            return;
+        }
         if (!value.trim()) {
             this.hideDropdown();
             return;
@@ -348,75 +358,75 @@ class AutoInput {
         // Determine dataset based on input name/type or original element ID
         let dataset = [];
         const inputName = this.input.name;
-        
+
         if (inputName === 'speciality' || this.originalId === 'auto-professions' || this.input.classList.contains('profession-input')) {
             // For speciality, create combined French-Arabic pairs
             const combinedResults = [];
-            
+
             if (window.professions && window.specialitiesAR) {
                 window.professions.forEach((frenchTerm, index) => {
                     const arabicTerm = window.specialitiesAR[index] || '';
-                    
+
                     // Check if French term matches
                     const frenchMatches = frenchTerm.toLowerCase().includes(value.toLowerCase());
                     // Check if Arabic term matches
                     const arabicMatches = arabicTerm.includes(value);
-                    
+
                     if (frenchMatches || arabicMatches) {
                         combinedResults.push(`${frenchTerm} - ${arabicTerm}`);
                     }
                 });
             }
-            
-            
+
+
             dataset = combinedResults;
         } else if (inputName === 'city' || this.originalId === 'auto-cities' || this.input.classList.contains('city-input')) {
             // For city, create combined French-Arabic pairs
             const combinedResults = [];
-            
+
             if (window.cities && window.citiesAR) {
                 window.cities.forEach((frenchTerm, index) => {
                     const arabicTerm = window.citiesAR[index] || '';
-                    
+
                     // Check if French term matches
                     const frenchMatches = frenchTerm.toLowerCase().includes(value.toLowerCase());
                     // Check if Arabic term matches
                     const arabicMatches = arabicTerm.includes(value);
-                    
+
                     if (frenchMatches || arabicMatches) {
                         combinedResults.push(`${frenchTerm} - ${arabicTerm}`);
                     }
                 });
             }
-            
-            
+
+
             dataset = combinedResults;
         } else {
             // Fallback to the words attribute
             dataset = this.words;
         }
-        
-        const filtered = dataset.filter(word => 
+
+        const filtered = dataset.filter(word =>
             word.toLowerCase().includes(value.toLowerCase())
         ).slice(0, 8); // Limit to 8 results
-        
+
         this.renderDropdown(filtered, value);
     }
-    
+
     renderDropdown(filtered, searchTerm) {
         if (filtered.length === 0) {
             this.hideDropdown();
-                return;
+            return;
         }
-        
+
         this.dropdown.innerHTML = filtered.map(word => {
             // Highlight matching text
             const highlighted = word.replace(
-                new RegExp(`(${searchTerm})`, 'gi'), 
+                new RegExp(`(${searchTerm})`, 'gi'),
                 '<mark style="background: yellow;">$1</mark>'
             );
-            
-                         return `
+
+            return `
                  <div 
                      class="auto-item" 
                      style="
@@ -433,9 +443,9 @@ class AutoInput {
                  </div>
              `;
         }).join('');
-        
+
         this.showDropdown();
-        
+
         // Auto-select the first item
         this.selectedIndex = 0;
         const items = this.dropdown.querySelectorAll('.auto-item');
@@ -443,13 +453,25 @@ class AutoInput {
             this.highlightItem(items);
         }
     }
-    
+
     showDropdown() {
+        if (this.disabled) return;
         this.dropdown.style.display = 'block';
     }
-    
+
     hideDropdown() {
         this.dropdown.style.display = 'none';
+    }
+
+    get disabled() {
+        return this._disabled || false;
+    }
+
+    set disabled(val) {
+        this._disabled = Boolean(val);
+        if (this._disabled && this.dropdown) {
+            this.hideDropdown();
+        }
     }
 
     get value() {
