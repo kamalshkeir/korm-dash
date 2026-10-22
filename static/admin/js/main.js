@@ -29,6 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
+    if (typeof globeEnabled !== "undefined" && globeEnabled === "true") {
+        navLinks.push({
+            href: `${admdmdPartth}/globe-explorer`,
+            label: '3D Explorer',
+            icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`,
+            exact: true
+        });
+    }
+
     if (kanbanEnabled == "true") {
         navLinks.push({
             href: `${admdmdPartth}/kanbans`,
@@ -68,56 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
       stroke="currentColor" 
       stroke-width="2" 
       stroke-linecap="round"/>
-</svg>`,
-            exact: true
-        })
-    }
-
-    if (nodeManagerEnabled === "true") {
-        navLinks.push({
-            href: `${admdmdPartth}/nodemanager`,
-            label: 'Node Manager',
-            icon: `<svg viewBox="0 0 24 24">
-<!-- Central sphere with gradient -->
-<defs>
-    <linearGradient id="sphereGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:currentColor;stop-opacity:0.8"/>
-        <stop offset="100%" style="stop-color:currentColor;stop-opacity:0.3"/>
-    </linearGradient>
-    <!-- Orbital path gradient -->
-    <linearGradient id="orbitGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" style="stop-color:currentColor;stop-opacity:0.2"/>
-        <stop offset="50%" style="stop-color:currentColor;stop-opacity:0.1"/>
-        <stop offset="100%" style="stop-color:currentColor;stop-opacity:0.2"/>
-    </linearGradient>
-</defs>
-
-<!-- Orbital rings -->
-<ellipse cx="12" cy="12" rx="11" ry="4.5" 
-         fill="none" 
-         stroke="url(#orbitGradient)" 
-         stroke-width="0.75" 
-         transform="rotate(-25,12,12)"/>
-<ellipse cx="12" cy="12" rx="9.5" ry="9.5" 
-         fill="none" 
-         stroke="url(#orbitGradient)" 
-         stroke-width="0.75"/>
-
-<!-- Central sphere -->
-<circle cx="12" cy="12" r="5" fill="url(#sphereGradient)"/>
-
-<!-- Orbiting nodes -->
-<circle cx="21" cy="12" r="2" fill="currentColor"/>
-<circle cx="3" cy="12" r="2" fill="currentColor"/>
-<circle cx="12" cy="3" r="2" fill="currentColor"/>
-<circle cx="12" cy="21" r="2" fill="currentColor"/>
-
-<!-- Connection lines -->
-<path d="M17 12a5 5 0 0 1 4 0M7 12a5 5 0 0 0-4 0M12 7a5 5 0 0 1 0-4M12 17a5 5 0 0 0 0 4" 
-      stroke="currentColor" 
-      stroke-width="0.75" 
-      fill="none" 
-      opacity="0.5"/>
 </svg>`,
             exact: true
         })
