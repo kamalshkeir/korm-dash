@@ -6,84 +6,106 @@ class ask extends HTMLElement {
             box-sizing: border-box;
         }
         :host {
-            font-family: Arial, sans-serif;
+            font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
             position: fixed;
             top: 0;
             left: 0;
-            background: rgba(0,0,0,0.5);
+            background: var(--bg-overlay, rgba(15, 18, 34, .42));
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             right: 0;
             bottom: 0;
             z-index: 99999999999;
             display: flex;
             align-items: center;
             justify-content: center;
-            --darkest:#212529;
-            --dark:#495057;
+            padding: 20px;
         }
 
         .modal {
-            width: min(90%, 400px);
-            background: var(--darkest);
-            border-radius: 8px;
+            width: min(92%, 420px);
+            background: var(--bg-surface, #fff);
+            border: 1px solid var(--border-default, rgba(13,16,32,.12));
+            border-radius: var(--radius-lg, 18px);
+            box-shadow: var(--shadow-lg, 0 24px 60px -12px rgba(13,16,32,.22));
             overflow: hidden;
             visibility: hidden;
             opacity: 0;
-            transition: all 0.2s ease-in-out;
+            transform: translateY(-10px) scale(.97);
+            transition: all .22s cubic-bezier(.34, 1.56, .64, 1);
         }
 
         .modal.open {
             visibility: visible;
             opacity: 1;
+            transform: translateY(0) scale(1);
         }
-        
+
         .modal .header {
             width: 100%;
-            background-color: var(--dark);
-            color: white;
+            background: var(--bg-surface-2, #f7f8fc);
+            border-bottom: 1px solid var(--border-subtle, rgba(13,16,32,.08));
+            color: var(--text-primary, #0d1020);
             display: flex;
             align-items: center;
-            padding: 15px 20px;
-            font-weight: 200;
-            gap: 10px;
+            padding: 18px 20px;
+            font-weight: 700;
+            font-size: 14.5px;
+            gap: 12px;
         }
-        
+
         .modal .header svg {
-            width: 24px;
-            height: 24px;
+            width: 21px;
+            height: 21px;
+            flex-shrink: 0;
             fill: none;
-            stroke: #ced4da;
+            stroke: var(--theme-color, #4f46e5);
             stroke-linecap: round;
             stroke-linejoin: round;
         }
-        
+
         .modal .footer {
             width: 100%;
-            background-color: var(--darkest);
+            background: var(--bg-surface, #fff);
             display: flex;
             justify-content: flex-end;
             align-items: center;
-            padding: 15px;
+            gap: 10px;
+            padding: 14px 16px;
+            border-top: 1px solid var(--border-subtle, rgba(13,16,32,.08));
         }
-        
+
         .modal .footer button {
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 500;
+            padding: 9px 18px;
+            border-radius: var(--radius-sm, 10px);
+            font-size: 13px;
+            font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
+            transition: all .16s cubic-bezier(.22, 1, .36, 1);
         }
-        
+
         .modal .footer button.cancel {
-            background-color: #333;
-            color: white;
-            border: none;
-            margin-right: 8px;
+            background: var(--bg-surface-3, #eef0f7);
+            color: var(--text-secondary, #565d75);
+            border: 1px solid transparent;
         }
-        
+
+        .modal .footer button.cancel:hover {
+            background: var(--bg-surface-2, #f7f8fc);
+            color: var(--text-primary, #0d1020);
+        }
+
         .modal .footer button.confirm {
-            background-color: #2563eb;
-            color: white;
+            background: var(--theme-color, #4f46e5);
+            color: #fff;
             border: none;
+            box-shadow: var(--shadow-accent, 0 8px 22px -8px rgba(79,70,229,.65));
+        }
+
+        .modal .footer button.confirm:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.06);
         }
     `;
 

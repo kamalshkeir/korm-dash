@@ -1,23 +1,37 @@
+/* ============================================================
+   Terminal page
+   ============================================================ */
+
 .terminal-container {
-    width: 90%;
-    max-width: 900px;
-    height: 50vh;
-    background-color: #282c34;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 1080px;
+    height: min(68vh, 640px);
+    background-color: #12141c;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-lg);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    animation: fade-up var(--dur-slow) var(--ease-out) both;
 }
 
 .terminal-header {
-    background-color: #21252b;
-    padding: 12px;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    background-color: #171a24;
+    padding: 12px 16px;
     display: flex;
     gap: 8px;
     align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+.terminal-title {
+    margin-left: 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #7a829b;
+    letter-spacing: 0.04em;
 }
 
 .terminal-button {
@@ -25,16 +39,24 @@
     height: 12px;
     border-radius: 50%;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: opacity 200ms ease;
 }
 
 .terminal-button:hover {
     opacity: 0.7;
 }
 
-.close { background-color: #ff5f57; }
-.minimize { background-color: #febc2e; }
-.maximize { background-color: #28c840; }
+.close {
+    background-color: #ff5f57;
+}
+
+.minimize {
+    background-color: #febc2e;
+}
+
+.maximize {
+    background-color: #28c840;
+}
 
 .terminal {
     padding: 20px;
@@ -43,15 +65,16 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 14px;
-    line-height: 1.5;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.65;
 }
 
 #output {
     flex: 1;
     overflow-y: auto;
-    white-space: pre;
+    white-space: pre-wrap;
+    word-break: break-word;
     margin-bottom: 16px;
 }
 
@@ -59,86 +82,92 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex-shrink: 0;
-    padding: 4px 0;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .prompt {
     color: #98c379;
-    font-weight: bold;
+    font-weight: 700;
+    flex-shrink: 0;
 }
 
 #command-input {
     flex: 1;
     background: none;
     border: none;
-    color: #abb2bf;
+    color: #e6e9f0;
     font-family: inherit;
     font-size: inherit;
     outline: none;
     padding: 0;
 }
 
+#command-input::placeholder {
+    color: #5c6478;
+}
+
 /* Scrollbar styling */
-::-webkit-scrollbar {
+.terminal::-webkit-scrollbar {
     width: 8px;
 }
 
-::-webkit-scrollbar-track {
-    background: #282c34;
+.terminal::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
-    background: #4b5263;
+.terminal::-webkit-scrollbar-thumb {
+    background: #3a4054;
     border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #5c6370;
+.terminal::-webkit-scrollbar-thumb:hover {
+    background: #4d5470;
 }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-    
-    .terminal-container {
-        width: 100%;
-        height: 70vh;
-    }
-    
-    .terminal {
-        padding: 15px;
-        font-size: 13px;
-    }
-}
-
+/* ---------- suggestions ---------- */
 .suggestions {
     position: absolute;
     bottom: 100%;
-    left: 20px;
-    background: #2c313a;
-    border: 1px solid #4b5263;
-    border-radius: 4px;
-    max-height: 200px;
+    left: 12px;
+    right: 12px;
+    background: #1b1e29;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: var(--radius-sm);
+    max-height: 210px;
     overflow-y: auto;
-    width: auto;
     min-width: 150px;
     display: none;
     z-index: 1000;
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 8px;
 }
 
 .suggestion {
-    padding: 8px 12px;
+    padding: 9px 13px;
     cursor: pointer;
     color: #abb2bf;
-    transition: background-color 0.2s;
+    transition: background-color 160ms ease, color 160ms ease;
+    font-size: 12.5px;
 }
 
 .suggestion:hover,
 .suggestion.selected {
-    background-color: #3e4451;
+    background-color: #262b39;
     color: #61afef;
+}
+
+@media (max-width: 768px) {
+    .terminal-container {
+        height: 72vh;
+    }
+
+    .terminal {
+        padding: 14px;
+        font-size: 12.5px;
+    }
 }

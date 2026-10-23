@@ -18,23 +18,24 @@ class NotificationManager {
                 z-index: 9999;
                 display: flex;
                 flex-direction: column;
-                gap: 0.5rem;
+                gap: 0.6rem;
             }
 
             .notification {
                 min-width: 300px;
                 max-width: 450px;
-                padding: 1rem;
-                border-radius: 0.5rem;
-                background: #18181b;
-                color: white;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                padding: 13px 15px;
+                border-radius: 14px;
+                background: var(--bg-surface, #fff);
+                color: var(--text-primary, #0d1020);
+                border: 1px solid var(--border-default, rgba(13,16,32,.12));
+                box-shadow: 0 18px 40px -12px rgba(13, 16, 32, .28), 0 4px 10px rgba(13,16,32,.06);
                 display: flex;
                 align-items: flex-start;
                 gap: 0.75rem;
                 transform: translateX(120%);
                 opacity: 0;
-                transition: all 0.3s ease;
+                transition: all .3s var(--ease-out, cubic-bezier(.22,1,.36,1));
             }
 
             .notification.show {
@@ -46,6 +47,7 @@ class NotificationManager {
                 flex-shrink: 0;
                 width: 20px;
                 height: 20px;
+                margin-top: 1px;
             }
 
             .notification-content {
@@ -54,45 +56,50 @@ class NotificationManager {
             }
 
             .notification-title {
-                font-weight: 500;
-                margin-bottom: 0.25rem;
+                font-weight: 700;
+                font-size: 13.5px;
+                margin-bottom: 0.2rem;
+                color: var(--text-primary, #0d1020);
             }
 
             .notification-message {
-                font-size: 0.875rem;
-                opacity: 0.9;
+                font-size: 12.5px;
+                color: var(--text-secondary, #565d75);
+                overflow-wrap: break-word;
             }
 
             .notification-close {
                 padding: 0.25rem;
                 background: none;
                 border: none;
-                color: currentColor;
-                opacity: 0.7;
+                color: var(--text-muted, #8b91a7);
                 cursor: pointer;
-                border-radius: 0.25rem;
+                border-radius: 6px;
                 flex-shrink: 0;
+                transition: all .16s ease;
             }
 
             .notification-close:hover {
-                background: var(--theme-color-hover);
+                background: var(--bg-surface-3, #eef0f7);
+                color: var(--text-primary, #0d1020);
             }
 
             .notification-close svg {
-                width: 16px;
-                height: 16px;
+                width: 15px;
+                height: 15px;
             }
 
-            .notification.success { background: #166534; }
-            .notification.error { background: #991b1b; }
-            .notification.info { background: #1e40af; }
-            .notification.warning { background: #ca8a04; }
+            .notification.success { border-left: 3px solid var(--success, #10b981); }
+            .notification.error   { border-left: 3px solid var(--danger, #ef4444); }
+            .notification.info    { border-left: 3px solid var(--info, #0ea5e9); }
+            .notification.warning { border-left: 3px solid var(--warning, #f59e0b); }
+            .notification.default { border-left: 3px solid var(--theme-color, #4f46e5); }
 
-            /* Hover states for close buttons */
-            .notification.success .notification-close:hover { background: #14532d; }
-            .notification.error .notification-close:hover { background: #7f1d1d; }
-            .notification.info .notification-close:hover { background: #1e3a8a; }
-            .notification.warning .notification-close:hover { background: #a16207; }
+            .notification.success .notification-icon { color: var(--success, #10b981); }
+            .notification.error   .notification-icon { color: var(--danger, #ef4444); }
+            .notification.info    .notification-icon { color: var(--info, #0ea5e9); }
+            .notification.warning .notification-icon { color: var(--warning, #f59e0b); }
+            .notification.default .notification-icon { color: var(--theme-color, #4f46e5); }
 
             @media (max-width: 640px) {
                 .notifications-container {

@@ -29,7 +29,7 @@ class DataTable extends HTMLElement {
             label: col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' '),
             type: this.#getColumnType(col, data.columns[col], data.dbcolumns[col])
         })) || [];
-        
+
         this.render();
     }
 
@@ -52,325 +52,357 @@ class DataTable extends HTMLElement {
     static get defaultStyles() {
         return `
             <style>
+                :host {
+                    display: block;
+                    --dt-border: var(--border-subtle, rgba(13,16,32,.08));
+                    --dt-surface: var(--bg-surface, #fff);
+                    --dt-surface-2: var(--bg-surface-2, #f7f8fc);
+                    --dt-text: var(--text-primary, #0d1020);
+                    --dt-muted: var(--text-muted, #8b91a7);
+                    --dt-accent: var(--theme-color, #4f46e5);
+                }
+
                 .table-container {
-                    background: white;
-                    border-radius: 0.75rem;
-                    border: 1px solid var(--border-color);
-                    margin-bottom: 1rem;
-                    overflow-x: auto;
+                    background: var(--dt-surface);
+                    border-radius: var(--radius-lg, 18px);
+                    border: 1px solid var(--dt-border);
+                    box-shadow: var(--shadow-sm, 0 2px 6px rgba(13,16,32,.06));
+                    overflow: auto;
+                    max-height: calc(100vh - 340px);
+                    min-height: 180px;
                 }
 
                 .data-table {
                     width: 100%;
-                    min-width: 800px;
-                    border-collapse: collapse;
-                    font-size: 0.875rem;
+                    min-width: 760px;
+                    border-collapse: separate;
+                    border-spacing: 0;
+                    font-size: 13px;
                 }
 
-                .data-table tr {
-                    height: 60px;  /* Fixed row height */
-                }
-
-                .data-table th {
-                    background: var(--bg-gray);
-                    padding: 0.75rem 1rem;
+                .data-table thead th {
+                    position: sticky;
+                    top: 0;
+                    z-index: 2;
+                    background: var(--dt-surface-2);
+                    padding: 11px 14px;
                     text-align: left;
-                    font-weight: 500;
-                    color: var(--text-gray);
-                    border-bottom: 1px solid var(--border-color);
+                    font-weight: 700;
+                    font-size: 11px;
+                    letter-spacing: 0.07em;
+                    text-transform: uppercase;
+                    color: var(--dt-muted);
+                    border-bottom: 1px solid var(--dt-border);
                     white-space: nowrap;
+                    user-select: none;
                 }
 
-                .data-table td {
-                    padding: 0.75rem 1rem;
+                .data-table tbody td {
+                    padding: 11px 14px;
                     vertical-align: middle;
                     line-height: 1.5;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    max-width: 200px;
-                }
-
-                .data-table td[data-column="content"] {
-                    white-space: normal;
-                    max-height: 60px;
-                    overflow: hidden;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                }
-
-                .data-table td span[title] {
-                    cursor: help;
-                    display: block;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
+                    max-width: 260px;
+                    border-bottom: 1px solid var(--dt-border);
+                    color: var(--dt-text);
                 }
 
                 .data-table tbody tr {
                     cursor: pointer;
+                    transition: background-color 140ms cubic-bezier(0.22, 1, 0.36, 1);
                 }
 
                 .data-table tbody tr:hover {
-                    background: var(--bg-gray);
+                    background: color-mix(in srgb, var(--dt-accent) 6%, transparent);
                 }
 
+                .data-table tbody tr:last-child td {
+                    border-bottom: none;
+                }
+
+                .data-table tbody tr.is-selected {
+                    background: color-mix(in srgb, var(--dt-accent) 10%, transparent);
+                }
+
+                /* ---------- checkbox cell ---------- */
                 .checkbox-cell {
-                    width: 48px;
+                    width: 44px;
                     text-align: center;
+                    padding-left: 16px !important;
+                    padding-right: 4px !important;
                 }
 
-                .status-badge {
+                input[type="checkbox"] {
+                    appearance: none;
+                    width: 16px;
+                    height: 16px;
+                    border: 1.5px solid var(--border-strong, rgba(13,16,32,.2));
+                    border-radius: 5px;
+                    background: transparent;
+                    cursor: pointer;
+                    position: relative;
+                    transition: all 140ms cubic-bezier(0.22, 1, 0.36, 1);
+                    vertical-align: middle;
+                }
+
+                input[type="checkbox"]:hover {
+                    border-color: var(--dt-accent);
+                }
+
+                input[type="checkbox"]:checked {
+                    background: var(--dt-accent);
+                    border-color: var(--dt-accent);
+                }
+
+                input[type="checkbox"]:checked::after {
+                    content: '';
+                    position: absolute;
+                    left: 4.5px;
+                    top: 1px;
+                    width: 4px;
+                    height: 9px;
+                    border: solid #fff;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(45deg);
+                }
+
+                input[type="checkbox"]:indeterminate {
+                    background: var(--dt-accent);
+                    border-color: var(--dt-accent);
+                }
+
+                input[type="checkbox"]:indeterminate::after {
+                    content: '';
+                    position: absolute;
+                    left: 2.5px;
+                    top: 6px;
+                    width: 8px;
+                    height: 2px;
+                    background: #fff;
+                    border-radius: 1px;
+                }
+
+                input[type="checkbox"]:disabled {
+                    opacity: 0.85;
+                    cursor: default;
+                }
+
+                /* ---------- boolean pill ---------- */
+                .bool-pill {
                     display: inline-flex;
                     align-items: center;
-                    padding: 0.25rem 0.75rem;
-                    border-radius: 1rem;
-                    font-size: 0.75rem;
-                    font-weight: 500;
-                    text-transform: uppercase;
-                    letter-spacing: 0.025em;
-                }
-                    
-
-                .status-badge.published {
-                    background: #dcfce7;
-                    color: var(--theme-color);
+                    gap: 6px;
+                    padding: 2px 10px 2px 8px;
+                    border-radius: 999px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 0.02em;
+                    border: 1px solid transparent;
                 }
 
-                .status-badge.draft {
-                    background: #f3f4f6;
-                    color: #374151;
+                .bool-pill.yes {
+                    background: color-mix(in srgb, #10b981 14%, transparent);
+                    color: #059669;
+                    border-color: color-mix(in srgb, #10b981 24%, transparent);
                 }
 
-                /* Selection bar */
+                .bool-pill.no {
+                    background: var(--bg-surface-3, #eef0f7);
+                    color: var(--dt-muted);
+                    border-color: var(--dt-border);
+                }
+
+                .bool-dot {
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    background: currentColor;
+                }
+
+                /* ---------- foreign key ---------- */
+                .fk {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    padding: 2px 9px;
+                    border-radius: 999px;
+                    font-family: var(--font-mono, ui-monospace, monospace);
+                    font-size: 11.5px;
+                    font-weight: 600;
+                    background: color-mix(in srgb, var(--dt-accent) 11%, transparent);
+                    color: var(--dt-accent);
+                    border: 1px solid color-mix(in srgb, var(--dt-accent) 20%, transparent);
+                    cursor: help;
+                    transition: all 140ms cubic-bezier(0.22, 1, 0.36, 1);
+                    max-width: 100%;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .fk:hover {
+                    background: color-mix(in srgb, var(--dt-accent) 18%, transparent);
+                }
+
+                .fk::before {
+                    content: '';
+                    width: 5px;
+                    height: 5px;
+                    border-radius: 50%;
+                    background: currentColor;
+                    flex-shrink: 0;
+                }
+
+                /* ---------- timestamps ---------- */
+                .timestamp {
+                    font-family: var(--font-mono, ui-monospace, monospace);
+                    font-size: 12px;
+                    color: var(--dt-muted);
+                }
+
+                th.timestamp {
+                    cursor: pointer;
+                }
+
+                th.timestamp::after {
+                    content: attr(data-format);
+                    margin-left: 6px;
+                    opacity: 0.65;
+                    font-size: 10px;
+                }
+
+                /* ---------- images ---------- */
+                .data-table td img {
+                    max-height: 46px;
+                    max-width: 80px;
+                    border-radius: 8px;
+                    border: 1px solid var(--dt-border);
+                    object-fit: cover;
+                    display: block;
+                }
+
+                /* ---------- truncated content ---------- */
+                .truncated-cell {
+                    max-width: 300px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    cursor: help;
+                }
+
+                .data-table td[data-column="content"],
+                .data-table td[data-column="description"],
+                .data-table td[data-column="text"],
+                .data-table td[data-column="body"] {
+                    max-width: 340px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                /* ---------- empty state ---------- */
+                .dt-empty {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    padding: 64px 20px;
+                    color: var(--dt-muted);
+                }
+
+                .dt-empty svg {
+                    width: 38px;
+                    height: 38px;
+                    fill: none;
+                    stroke: currentColor;
+                    stroke-width: 1.4;
+                    opacity: 0.5;
+                }
+
+                .dt-empty strong {
+                    font-size: 14px;
+                    color: var(--text-secondary, #565d75);
+                }
+
+                .dt-empty span {
+                    font-size: 12.5px;
+                }
+
+                /* ---------- selection bar ---------- */
                 .selection-bar {
                     position: fixed;
-                    bottom: 30px;
+                    bottom: 28px;
                     left: 50%;
-                    transform: translateX(-50%);
-                    background: var(--theme-color);
-                    color: white;
-                    padding: 0.75rem 1.25rem;
-                    border-radius: 0.75rem;
+                    transform: translateX(-50%) translateY(20px);
+                    background: var(--dt-text);
+                    color: var(--bg-canvas, #f4f5fa);
+                    padding: 10px 14px;
+                    border-radius: 999px;
                     display: flex;
                     align-items: center;
-                    gap: 1rem;
-                    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                    gap: 14px;
+                    box-shadow: var(--shadow-lg, 0 24px 60px -12px rgba(13,16,32,.22));
                     z-index: 1000;
                     opacity: 0;
                     visibility: hidden;
-                    transition: all 0.2s ease;
-                }
-
-                @media (max-width: 768px) {
-                    .table-header {
-                        padding: 0 1rem;
-                        margin-bottom: 0.75rem;
-                    }
-                    .selection-bar {
-                        bottom: 70px;
-                    }
-
-                    .selection-bar .actions{
-                        display:flex;
-                    }
-                    .status-badge {
-                        padding: 0.25rem 0.5rem;
-                        font-size: 0.7rem;
-                        white-space:nowrap;
-                    }
+                    transition: all 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
                 }
 
                 .selection-bar.show {
                     opacity: 1;
                     visibility: visible;
+                    transform: translateX(-50%) translateY(0);
+                }
+
+                .selection-bar .selected-count {
+                    font-size: 12.5px;
+                    font-weight: 700;
+                    white-space: nowrap;
+                }
+
+                .selection-bar .actions {
+                    display: flex;
+                    gap: 4px;
                 }
 
                 .selection-bar button {
-                    padding: 0.5rem;
-                    background: none;
+                    display: grid;
+                    place-items: center;
+                    width: 30px;
+                    height: 30px;
+                    padding: 0;
+                    background: rgba(255, 255, 255, 0.1);
                     border: none;
-                    color: white;
+                    color: inherit;
                     cursor: pointer;
-                    border-radius: 0.5rem;
+                    border-radius: 50%;
+                    transition: background-color 140ms ease;
                 }
 
                 .selection-bar button:hover {
-                    background: var(--theme-color-hover);
+                    background: rgba(255, 255, 255, 0.2);
                 }
 
                 .selection-bar button svg {
-                    width: 20px;
-                    height: 20px;
-                    fill: currentColor;
+                    width: 16px;
+                    height: 16px;
+                    fill: none;
+                    stroke: currentColor;
+                    stroke-width: 2;
+                    stroke-linecap: round;
+                    stroke-linejoin: round;
                 }
 
-                /* Dark mode */
-                :host-context(.dark-mode) .table-container {
-                    background: #1a1a1a;
-                    border-color: #2a2a2a;
-                }
+                @media (max-width: 768px) {
+                    .table-container {
+                        max-height: none;
+                    }
 
-                :host-context(.dark-mode) .data-table {
-                    color: #e5e5e5;
-                }
-
-                :host-context(.dark-mode) .data-table th {
-                    background: #1f1f1f;
-                    color: #a1a1aa;
-                    border-bottom-color: #2a2a2a;
-                }
-
-                :host-context(.dark-mode) .data-table td {
-                    border-bottom-color: #2a2a2a;
-                    height: 40px;
-                }
-
-                :host-context(.dark-mode) .data-table tbody tr:hover {
-                    background: #222222;
-                }
-
-                .data-table td img {
-                    max-height: 50px;
-                    border-radius: 4px;
-                }
-
-                .selected-count {
-                    white-space: nowrap;
-                }
-
-                .data-table td.fk {
-                    color: var(--theme-color);
-                    cursor: help;
-                }
-
-                .data-table th.timestamp {
-                    cursor: pointer;
-                }
-
-                .data-table th.timestamp::after {
-                    content: attr(data-format);
-                    margin-left: 4px;
-                }
-
-                .fk {
-                    cursor: help;
-                    color: var(--theme-color);  /* Use theme color */
-                    font-weight: 500;
-                    padding: 0.25rem 0.5rem;
-                    background: rgba(147, 51, 74, 0.1);  /* Light theme color background */
-                    border-radius: 0.25rem;
-                    transition: all 0.2s ease;
-                    text-decoration: none;  /* Remove underline */
-                }
-
-                .fk:hover {
-                    background: rgba(147, 51, 74, 0.2);  /* Darker theme color on hover */
-                }
-
-                /* Dark mode styles */
-                :host-context(.dark-mode) .fk {
-                    color: var(--theme-color);  /* Keep theme color in dark mode */
-                    background: rgba(147, 51, 74, 0.15);  /* Slightly more opaque in dark mode */
-                }
-
-                :host-context(.dark-mode) .fk:hover {
-                    background: rgba(147, 51, 74, 0.25);
-                }
-
-                .tooltip {
-                    position: fixed;
-                    background: #333;
-                    color: white;
-                    padding: 0.75rem 1rem;
-                    border-radius: 0.375rem;
-                    font-size: 0.875rem;
-                    z-index: 10000;
-                    pointer-events: none;
-                    white-space: pre-line;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                    max-width: 300px;
-                    opacity: 1;
-                    visibility: visible;
-                }
-
-                /* Dark mode tooltip */
-                :host-context(.dark-mode) .tooltip {
-                    background: #1a1a1a;
-                    border: 1px solid #2a2a2a;
-                }
-
-                .timestamp-cell {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    white-space: nowrap;
-                }
-
-                .timestamp {
-                    flex: 1;
-                    min-width: 0;
-                }
-
-                th.timestamp {
-                    cursor: pointer;
-                    user-select: none;
-                    white-space: nowrap;
-                }
-
-                th.timestamp::after {
-                    content: attr(data-format);
-                    margin-left: 0.5rem;
-                    opacity: 0.7;
-                }
-
-                /* Add these new styles */
-                .truncated-cell {
-                    max-width: 200px;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    cursor: help;
-                }
-
-                td {
-                    max-width: 200px; /* Consistent max-width for all cells */
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                /* Style for content columns (like WYSIWYG fields) */
-                td[data-column="content"],
-                td[data-column="description"],
-                td[data-column="text"] {
-                    max-width: 300px;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                /* Tooltip styles */
-                .content-tooltip {
-                    position: fixed;
-                    background: #333;
-                    color: white;
-                    padding: 0.75rem 1rem;
-                    border-radius: 0.375rem;
-                    font-size: 0.875rem;
-                    z-index: 10000;
-                    pointer-events: none;
-                    max-width: 400px;
-                    white-space: normal;
-                    line-height: 1.4;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                }
-
-                /* Dark mode tooltip */
-                :host-context(.dark-mode) .content-tooltip {
-                    background: #1a1a1a;
-                    border: 1px solid #2a2a2a;
+                    .selection-bar {
+                        bottom: 78px;
+                    }
                 }
             </style>
         `;
@@ -387,10 +419,10 @@ class DataTable extends HTMLElement {
             <span class="selected-count">0 records selected</span>
             <div class="actions">
                 <button title="Reset selection">
-                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
                 <button title="Delete selected">
-                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
                 </button>
             </div>
         `;
@@ -406,10 +438,8 @@ class DataTable extends HTMLElement {
             console.error('Data must be an array');
             return;
         }
-        // Store the data
         this.#data = value;
 
-        // Render and setup event listeners
         this.render();
 
         // Setup event listeners for the new rows
@@ -422,7 +452,6 @@ class DataTable extends HTMLElement {
             });
         });
 
-        // Re-setup selection handling for the new rows
         this.setupSelectionHandling();
     }
 
@@ -431,9 +460,12 @@ class DataTable extends HTMLElement {
     }
 
     render() {
+        const hasData = this.#data.length > 0;
+
         this.shadowRoot.innerHTML = `
             ${DataTable.defaultStyles}
             <div class="table-container">
+                ${hasData ? `
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -457,7 +489,12 @@ class DataTable extends HTMLElement {
                             </tr>
                         `).join('')}
                     </tbody>
-                </table>
+                </table>` : `
+                <div class="dt-empty">
+                    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+                    <strong>No rows found</strong>
+                    <span>This table is empty, or your search matched nothing.</span>
+                </div>`}
             </div>
         `;
 
@@ -470,7 +507,11 @@ class DataTable extends HTMLElement {
     }
 
     formatCell(value, type, colKey) {
-        if (!value && value !== 0) return '';
+        if (value === null || value === undefined || value === '') return '';
+        if (type === 'boolean') {
+            const yes = value == 1 || value === true || value === 'true';
+            return `<span class="bool-pill ${yes ? 'yes' : 'no'}"><span class="bool-dot"></span>${yes ? 'true' : 'false'}</span>`;
+        }
         switch (type) {
             case 'timestamp':
                 const formattedTime = this.#columnTimeFormats.get(colKey) ? value : this.#formatTimestamp(value);
@@ -480,10 +521,7 @@ class DataTable extends HTMLElement {
                 </span>`;
 
             case 'image':
-                return value ? `<img src="${value}" alt="image">` : '';
-
-            case 'boolean':
-                return `<input type="checkbox" ${value == 1 || value === true ? 'checked' : ''} disabled>`;
+                return value ? `<img src="${value}" alt="image" loading="lazy">` : '';
 
             case 'fk':
                 const fkeyValues = this.#fkeys[colKey] || [];
@@ -514,7 +552,6 @@ class DataTable extends HTMLElement {
                     // Strip HTML tags for WYSIWYG content
                     const cleanText = value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
-                    // Add data-content attribute to store full text for tooltips
                     if (cleanText.length > 50) {
                         return `<div class="truncated-cell" data-content="${cleanText.replace(/"/g, '&quot;')}">
                             ${cleanText.substring(0, 50)}...
@@ -532,7 +569,6 @@ class DataTable extends HTMLElement {
             row.addEventListener('click', (e) => {
                 if (!e.target.closest('.checkbox-cell')) {
                     const rowData = this.getRowData(row);
-                    // Call the callback with both rowData and the tr element
                     this.#onRowClick?.(rowData, row);
                 }
             });
@@ -545,7 +581,6 @@ class DataTable extends HTMLElement {
         this.shadowRoot.querySelectorAll('th.timestamp').forEach(th => {
             th.addEventListener('click', () => {
                 const columnKey = th.dataset.column;
-                const label = th.textContent; // Store the original label
                 this.#columnTimeFormats.set(columnKey, !this.#columnTimeFormats.get(columnKey));
                 th.dataset.format = this.#columnTimeFormats.get(columnKey) ? '🕒' : '📅';
 
@@ -576,7 +611,6 @@ class DataTable extends HTMLElement {
     }
 
     getRowData(row) {
-        // Get the original data using the row's primary key
         const pk = row.dataset.pk;
         return this.#data.find(item => item[this.#pk] == pk) || {};
     }
@@ -636,9 +670,6 @@ class DataTable extends HTMLElement {
                     }
                 }
             })
-
-
-
         });
 
         // Add reset button handler
@@ -647,6 +678,7 @@ class DataTable extends HTMLElement {
             selectAllCheckbox.indeterminate = false;
             rowCheckboxes.forEach(checkbox => {
                 checkbox.checked = false;
+                checkbox.closest('tr')?.classList.remove('is-selected');
             });
             this.updateSelectionBar();
         });
@@ -656,6 +688,7 @@ class DataTable extends HTMLElement {
             const isChecked = e.target.checked;
             rowCheckboxes.forEach(checkbox => {
                 checkbox.checked = isChecked;
+                checkbox.closest('tr')?.classList.toggle('is-selected', isChecked);
             });
             this.updateSelectionBar();
         });
@@ -665,6 +698,7 @@ class DataTable extends HTMLElement {
             checkbox.addEventListener('change', () => {
                 selectAllCheckbox.checked = [...rowCheckboxes].every(cb => cb.checked);
                 selectAllCheckbox.indeterminate = [...rowCheckboxes].some(cb => cb.checked) && !selectAllCheckbox.checked;
+                checkbox.closest('tr')?.classList.toggle('is-selected', checkbox.checked);
                 this.updateSelectionBar();
             });
         });
@@ -674,7 +708,7 @@ class DataTable extends HTMLElement {
         const checkedCount = this.shadowRoot.querySelectorAll('.row-checkbox:checked').length;
 
         if (checkedCount > 0) {
-            this.#selectionBar.querySelector('.selected-count').textContent = `${checkedCount} records selected`;
+            this.#selectionBar.querySelector('.selected-count').textContent = `${checkedCount} record${checkedCount > 1 ? 's' : ''} selected`;
             this.#selectionBar.classList.add('show');
         } else {
             this.#selectionBar.classList.remove('show');
@@ -718,4 +752,4 @@ class DataTable extends HTMLElement {
     }
 }
 
-customElements.define('data-table', DataTable); 
+customElements.define('data-table', DataTable);

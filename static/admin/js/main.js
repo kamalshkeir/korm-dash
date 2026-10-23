@@ -1,30 +1,51 @@
-// NAV
+// ============================================================
+// KORM dashboard — navigation, theme and command palette
+// ============================================================
+
+const ICONS = {
+    dashboard: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>`,
+    tables: `<svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>`,
+    logs: `<svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
+    globe: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+    kanban: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M9 3v18M15 3v18"/></svg>`,
+    terminal: `<svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>`,
+    traces: `<svg viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>`,
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize theme
+    // ---------------- theme ----------------
     const savedColor = localStorage.getItem('theme-color');
     if (savedColor) {
         document.documentElement.style.setProperty('--theme-color', savedColor);
         document.documentElement.style.setProperty('--theme-color-hover',
-            adjustBrightness(savedColor, -10));
+            adjustBrightness(savedColor, -12));
     }
-    // Configure navigation links
+
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    document.documentElement.classList.toggle('dark', isDark);
+    // `dark` is also set on <body> for the pages that scope their styles with
+    // `body:not(.dark)` / `body.dark`.
+    document.body.classList.toggle('dark', isDark);
+    document.body.classList.toggle('dark-mode', isDark);
+
+    // ---------------- navigation ----------------
     const navLinks = [
         {
             href: admdmdPartth,
             label: 'Dashboard',
-            icon: `<svg viewBox="0 0 24 24"><path d="M13 9V3h8v6h-8ZM3 13V3h8v10H3Zm10 8V11h8v10h-8ZM3 21v-6h8v6H3Z"/></svg>`,
+            icon: ICONS.dashboard,
             exact: true
         },
         {
             href: `${admdmdPartth}/tables`,
             label: 'Tables',
-            icon: `<svg viewBox="0 0 24 24"><path d="M3 3h18v18H3V3Zm16 16V5H5v14h14ZM7 7h4v4H7V7Zm0 6h10v2H7v-2Zm0 4h10v2H7v-2Zm6-9h4v2h-4V8Z"/></svg>`,
+            icon: ICONS.tables,
             exact: false
         },
         {
             href: `${admdmdPartth}/logs`,
-            label: 'Logs And Metrics',
-            icon: `<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/><path d="M7 12h2v5H7zm8-5h2v10h-2zm-4 7h2v3h-2zm0-4h2v2h-2z"/></svg>`,
+            label: 'Logs & Metrics',
+            icon: ICONS.logs,
             exact: true
         }
     ];
@@ -33,60 +54,46 @@ document.addEventListener('DOMContentLoaded', () => {
         navLinks.push({
             href: `${admdmdPartth}/globe-explorer`,
             label: '3D Explorer',
-            icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`,
+            icon: ICONS.globe,
             exact: true
         });
     }
 
-    if (kanbanEnabled == "true") {
+    if (typeof kanbanEnabled !== "undefined" && kanbanEnabled === "true") {
         navLinks.push({
             href: `${admdmdPartth}/kanbans`,
             label: 'Kanban',
-            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 5v11"/>
-            <path d="M12 5v6"/>
-            <path d="M18 5v14"/>
-            </svg>`,
+            icon: ICONS.kanban,
             exact: false
         });
     }
-    if (terminalEnabled === "true") {
+
+    if (typeof terminalEnabled !== "undefined" && terminalEnabled === "true") {
         navLinks.push({
             href: `${admdmdPartth}/terminal`,
             label: 'Terminal',
-            icon: `<?xml version="1.0" encoding="utf-8"?>
-<svg viewBox="0 0 24 24">
-<path d="M7.29291 14.2929C6.90238 14.6834 6.90238 15.3166 7.29291 15.7071C7.68343 16.0976 8.31659 16.0976 8.70712 15.7071L11.2071 13.2071C11.8738 12.5404 11.8738 11.4596 11.2071 10.7929L8.70712 8.29289C8.3166 7.90237 7.68343 7.90237 7.29291 8.29289C6.90238 8.68342 6.90238 9.31658 7.29291 9.70711L9.5858 12L7.29291 14.2929ZM13 14C12.4477 14 12 14.4477 12 15C12 15.5523 12.4477 16 13 16H16C16.5523 16 17 15.5523 17 15C17 14.4477 16.5523 14 16 14H13ZM22 7.93418C22 7.95604 22 7.97799 22 8.00001L22 16.0658C22.0001 16.9523 22.0001 17.7161 21.9179 18.3278C21.8297 18.9833 21.631 19.6117 21.1213 20.1213C20.6117 20.631 19.9833 20.8297 19.3278 20.9179C18.7161 21.0001 17.9523 21.0001 17.0658 21L6.9342 21C6.0477 21.0001 5.28388 21.0001 4.67222 20.9179C4.0167 20.8297 3.38835 20.631 2.87869 20.1213C2.36902 19.6117 2.17028 18.9833 2.08215 18.3278C1.99991 17.7161 1.99995 16.9523 2 16.0658L2 7.9342C1.99995 7.0477 1.99991 6.28388 2.08215 5.67221C2.17028 5.0167 2.36902 4.38835 2.87869 3.87868C3.38835 3.36902 4.0167 3.17028 4.67222 3.08215C5.28388 2.99991 6.04769 2.99995 6.93418 3L17 3.00001C17.022 3.00001 17.044 3 17.0658 3C17.9523 2.99995 18.7161 2.99991 19.3278 3.08215C19.9833 3.17028 20.6117 3.36902 21.1213 3.87869C21.631 4.38835 21.8297 5.0167 21.9179 5.67221C22.0001 6.28387 22.0001 7.04769 22 7.93418Z"/>
-</svg>`,
+            icon: ICONS.terminal,
             exact: true
         });
     }
-    if (traceEnabled === "true") {
+
+    if (typeof traceEnabled !== "undefined" && traceEnabled === "true") {
         navLinks.push({
             href: `${admdmdPartth}/traces`,
             label: 'Traces',
-            icon: `<svg viewBox="0 0 24 24">
-<!-- Outer circle -->
-<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
-<!-- Compass needle -->
-<path d="M12 2 L14 12 L12 22 L10 12 Z" fill="currentColor"/>
-<!-- Center dot -->
-<circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-<!-- Cardinal points -->
-<path d="M12 4 L12 6 M20 12 L18 12 M12 20 L12 18 M4 12 L6 12" 
-      stroke="currentColor" 
-      stroke-width="2" 
-      stroke-linecap="round"/>
-</svg>`,
+            icon: ICONS.traces,
             exact: true
-        })
+        });
     }
+
     const mainNav = document.getElementById('mainNav');
     if (mainNav) {
         mainNav.links = navLinks;
     }
-});
 
+    // ---------------- command palette ----------------
+    initCommandPalette(navLinks);
+});
 
 function adjustBrightness(color, percent) {
     const num = parseInt(color.replace('#', ''), 16);
@@ -99,4 +106,152 @@ function adjustBrightness(color, percent) {
         (B < 255 ? B < 1 ? 0 : B : 255))
         .toString(16)
         .slice(1);
+}
+
+/**
+ * Command palette — jump to any page or table with ⌘K / Ctrl+K.
+ */
+function initCommandPalette(navLinks) {
+    const adminPath = (admdmdPartth || '/admin').replace(/\/$/, '');
+    let tables = [];
+    let activeIndex = 0;
+    let results = [];
+
+    const overlay = document.createElement('div');
+    overlay.className = 'palette-overlay';
+    overlay.innerHTML = `
+        <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+            <div class="palette-input-wrap">
+                <svg viewBox="0 0 24 24" class="palette-search-icon"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                <input type="text" class="palette-input" placeholder="Search tables and pages…" autocomplete="off" spellcheck="false">
+                <kbd class="palette-kbd">ESC</kbd>
+            </div>
+            <div class="palette-results" id="paletteResults"></div>
+            <div class="palette-footer">
+                <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+                <span><kbd>↵</kbd> open</span>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+
+    const input = overlay.querySelector('.palette-input');
+    const resultsEl = overlay.querySelector('#paletteResults');
+
+    const entries = () => {
+        const pages = navLinks.map(l => ({
+            type: 'page',
+            label: l.label,
+            hint: 'Page',
+            href: l.href,
+            icon: l.icon
+        }));
+        const tableEntries = tables.map(t => ({
+            type: 'table',
+            label: t.name,
+            hint: `${t.count} row${t.count === 1 ? '' : 's'}`,
+            href: `${adminPath}/tables/${encodeURIComponent(t.name)}`,
+            icon: `<svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>`
+        }));
+        return [...pages, ...tableEntries];
+    };
+
+    function renderResults(filter) {
+        const q = (filter || '').trim().toLowerCase();
+        const all = entries();
+        results = q ? all.filter(e => e.label.toLowerCase().includes(q)) : all;
+        if (!results.length) {
+            resultsEl.innerHTML = `<div class="palette-empty">No match for “${filter}”</div>`;
+            return;
+        }
+        activeIndex = 0;
+        resultsEl.innerHTML = results.map((e, i) => `
+            <button class="palette-item ${i === 0 ? 'active' : ''}" data-href="${e.href}" data-index="${i}" type="button">
+                <span class="palette-item-icon">${e.icon}</span>
+                <span class="palette-item-label">${e.label}</span>
+                <span class="palette-item-hint">${e.hint}</span>
+            </button>`).join('');
+        resultsEl.querySelectorAll('.palette-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                window.location.href = btn.dataset.href;
+            });
+        });
+    }
+
+    function focusSearch() {
+        input.focus({ preventScroll: true });
+        // Chrome may still refuse the focus on the very first frame after the
+        // overlay became visible — retry once the frame is painted.
+        requestAnimationFrame(() => {
+            if (document.activeElement !== input) {
+                input.focus({ preventScroll: true });
+            }
+        });
+    }
+
+    function open() {
+        overlay.classList.add('open');
+        // Force a reflow so `visibility: visible` is applied synchronously,
+        // otherwise the caret cannot be moved into the hidden search field.
+        void overlay.offsetHeight;
+        input.value = '';
+        renderResults('');
+        document.body.style.overflow = 'hidden';
+        focusSearch();
+    }
+
+    function close() {
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) close();
+    });
+
+    input.addEventListener('input', () => renderResults(input.value));
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIndex = Math.min(activeIndex + 1, results.length - 1);
+            syncActive();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIndex = Math.max(activeIndex - 1, 0);
+            syncActive();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const target = results[activeIndex];
+            if (target) window.location.href = target.href;
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            close();
+        }
+    });
+
+    function syncActive() {
+        resultsEl.querySelectorAll('.palette-item').forEach((el, i) => {
+            el.classList.toggle('active', i === activeIndex);
+            if (i === activeIndex) el.scrollIntoView({ block: 'nearest' });
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            overlay.classList.contains('open') ? close() : open();
+        } else if (e.key === 'Escape' && overlay.classList.contains('open')) {
+            close();
+        }
+    });
+
+    document.addEventListener('korm:open-palette', open);
+
+    // Preload the table list so the palette is instant.
+    fetch(`${adminPath}/tables/list`, { headers: { 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            tables = (data && data.success) || [];
+        })
+        .catch(() => { tables = []; });
 }

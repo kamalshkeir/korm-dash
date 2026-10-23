@@ -1,32 +1,129 @@
 {{template "admin_base" .}}
 
-{{define "admin_css"}}{{end}}
-{{define "admin_title"}}Dashboard{{end}}
-
-
-{{define "admin_main_content"}}
-    <div class="app-layout">
-        <nav-bar id="mainNav"></nav-bar>
-        <main class="main-content">
-            <app-header titre="Dashboard" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
-            <div class="content-area">
-                <div class="dashboard-grid">
-                    {{if .withRequestCounter}}
-                    <div class="stats-card">
-                        <h3>API Requests</h3>
-                        <p>{{.requests}}</p>
-                    </div>
-                    {{end}}
-                    {{range .stats}}
-                    <div class="stats-card">
-                        <h3>{{.Name | safe}}</h3>
-                        <p>{{call .Func | safe}}</p>
-                    </div>
-                    {{end}}
-                </div>
-            </div>
-        </main>
-    </div>
+{{define "admin_css"}}
+<link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/dashboard.css">
 {{end}}
 
-{{define "admin_js"}}{{end}}
+{{define "admin_title"}}Dashboard{{end}}
+
+{{define "admin_main_content"}}
+<div class="app-layout">
+    <nav-bar id="mainNav"></nav-bar>
+    <main class="main-content">
+        <app-header titre="Dashboard" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
+        <div class="content-area">
+
+            <section class="hero">
+                <div class="hero-text">
+                    <span class="hero-eyebrow">
+                        <span class="pulse-dot"></span>
+                        Live database console
+                    </span>
+                    <h2>Welcome back, {{.User.Username}}</h2>
+                    <p>Everything about your schema, your rows and your runtime — in one place.</p>
+                </div>
+                <div class="hero-actions">
+                    <a class="btn" href="{{$.admin_path}}/tables">
+                        <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+                        Browse tables
+                    </a>
+                    <a class="btn btn-primary" href="{{$.admin_path}}/logs">
+                        <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        Live logs
+                    </a>
+                </div>
+            </section>
+
+            <div class="dashboard-grid">
+                {{if .withRequestCounter}}
+                <div class="stats-card accent">
+                    <div class="stats-card-head">
+                        <span class="stats-label">API requests</span>
+                        <span class="stats-icon">
+                            <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        </span>
+                    </div>
+                    <div class="stats-value">{{.requests}}</div>
+                    <div class="stats-foot">requests handled since boot</div>
+                </div>
+                {{end}}
+                {{range .stats}}
+                <div class="stats-card">
+                    <div class="stats-card-head">
+                        <span class="stats-label">{{.Name | safe}}</span>
+                        <span class="stats-icon">
+                            <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/></svg>
+                        </span>
+                    </div>
+                    <div class="stats-value">{{call .Func | safe}}</div>
+                    <div class="stats-foot">live metric</div>
+                </div>
+                {{end}}
+                <div class="stats-card">
+                    <div class="stats-card-head">
+                        <span class="stats-label">Tables</span>
+                        <span class="stats-icon">
+                            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+                        </span>
+                    </div>
+                    <div class="stats-value">{{len .tables}}</div>
+                    <div class="stats-foot">{{len .relations}} tables linked</div>
+                </div>
+            </div>
+
+            <div class="dash-columns">
+                <section class="card card-pad schema-card">
+                    <div class="section-title">
+                        <span class="st-dot"></span>
+                        Schema map
+                        <span class="section-hint">Hover a table to trace its relations</span>
+                    </div>
+                    <div class="schema-graph" id="schemaGraph">
+                        <div class="schema-loading">Loading schema…</div>
+                    </div>
+                    <div class="schema-legend">
+                        <span><i class="legend-dot system"></i> system</span>
+                        <span><i class="legend-dot custom"></i> custom</span>
+                        <span><i class="legend-line"></i> foreign key</span>
+                    </div>
+                </section>
+
+                <section class="card card-pad">
+                    <div class="section-title">
+                        <span class="st-dot"></span>
+                        Tables
+                        <a class="section-link" href="{{$.admin_path}}/tables">View all</a>
+                    </div>
+                    <div class="dash-table-list">
+                        {{range .tables}}
+                        <a class="dash-table" href="{{$.admin_path}}/tables/{{.Name}}" data-table="{{.Name}}">
+                            <span class="dash-table-icon">
+                                <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+                            </span>
+                            <span class="dash-table-body">
+                                <span class="dash-table-name">{{.Name}}</span>
+                                <span class="dash-table-meta">{{.Count}} rows · {{len .Columns}} columns</span>
+                            </span>
+                            {{if .Relations}}
+                            <span class="dash-table-rel" title="{{len .Relations}} relations">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                {{len .Relations}}
+                            </span>
+                            {{end}}
+                        </a>
+                        {{end}}
+                    </div>
+                </section>
+            </div>
+
+        </div>
+    </main>
+</div>
+{{end}}
+
+{{define "admin_js"}}
+<script>
+    var adminPath = "{{$.admin_path}}"
+</script>
+<script src="{{$.static_url}}/admin/js/dashboard.js" type="module"></script>
+{{end}}

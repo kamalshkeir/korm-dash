@@ -1,27 +1,59 @@
 class modalEl extends HTMLElement {
     static css = `
         :host dialog {
-            padding: 30px 50px;
-            background: rgba(239, 236, 236, 0.95);
-            border-radius: .5rem;
-            border: none;
+            padding: 0;
+            background: var(--bg-surface, #fff);
+            color: var(--text-primary, #0d1020);
+            border-radius: var(--radius-lg, 18px);
+            border: 1px solid var(--border-default, rgba(13,16,32,.12));
             outline: none;
-            box-shadow: 0 .4rem .8rem #0005;
-            min-width: 40vw;
+            box-shadow: var(--shadow-lg, 0 24px 60px -12px rgba(13,16,32,.22));
+            min-width: min(92vw, 440px);
+            max-width: min(92vw, 560px);
+            font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+            overflow: hidden;
         }
 
         :host dialog::backdrop {
-            background-color: rgba(255,255,255,.6);
-            filter: invert(1) hue-rotate(180deg);
+            background-color: var(--bg-overlay, rgba(15,18,34,.42));
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        :host dialog .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 22px;
+            background: var(--bg-surface-2, #f7f8fc);
+            border-bottom: 1px solid var(--border-subtle, rgba(13,16,32,.08));
+        }
+
+        :host dialog .header h1 {
+            font-family: var(--font-display, sans-serif);
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-primary, #0d1020);
+            margin: 0;
+        }
+
+        :host dialog .body {
+            padding: 22px;
+            color: var(--text-secondary, #565d75);
         }
 
         :host dialog .header .close {
-            position: absolute;
-            right: 15px;
-            top: 15px;
             font-size: 20px;
+            line-height: 1;
             cursor: pointer;
             font-weight: 800;
+            color: var(--text-muted, #8b91a7);
+            transition: color .16s ease;
+        }
+
+        :host dialog .header .close:hover {
+            color: var(--text-primary, #0d1020);
         }
     `;
 
@@ -126,12 +158,6 @@ class modalEl extends HTMLElement {
         `;
 
         this.shadowRoot.append(this.modal);
-
-        // Apply dark mode if needed
-        if (document.body.classList.contains("dark")) {
-            this.modal.style.filter = "invert(1) hue-rotate(180deg)";
-            this.modal.style.boxShadow = "0 .4rem .8rem #fff5";
-        }
 
         this.modal.querySelector(".close").addEventListener("click", (e) => {
             e.preventDefault();

@@ -16,42 +16,94 @@
     <nav-bar id="mainNav"></nav-bar>
     <main class="main-content">
         <app-header
-            titre="<a href='{{$.admin_path}}/tables' style='color: #e5e5e5;text-decoration: none;'>Tables</a> / {{$.table}}"
+            titre="<a href='{{$.admin_path}}/tables' class='crumb-link'>Tables</a><span class='crumb-sep'>/</span>{{$.table}}"
             username="{{$.User.Username}}" email="{{$.User.Email}}" logout="{{$.admin_path}}/logout"
             restart="{{$.admin_path}}/restart"></app-header>
-        <div class="content-area" style="margin-top: 100px 0px;">
-            <div class="table-header">
-                <form class="table-search">
-                    <svg viewBox="0 0 24 24" class="search-icon">
-                        <path
-                            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                    </svg>
-                    <input type="text" name="ssearch" id="ssearch" placeholder="id > 10 AND name LIKE '%John%'"
-                        class="search-input">
-                    <button type="submit" style="display: none;"></button>
-                </form>
-                <div class="table-actions">
+        <div class="content-area">
+
+            <div class="page-head table-page-head">
+                <div>
+                    <h2 class="table-title">
+                        <span class="table-title-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+                        </span>
+                        {{$.table}}
+                    </h2>
+                    <p class="table-sub">
+                        <span><strong>{{.rowCount}}</strong> rows</span>
+                        <span class="stat-sep"></span>
+                        <span><strong>{{len .columnsOrdered}}</strong> columns</span>
+                        <span class="stat-sep"></span>
+                        <span>pk <strong>{{.pk}}</strong></span>
+                        <span class="stat-sep"></span>
+                        <span class="badge badge-accent">{{.dbType}}</span>
+                    </p>
+                </div>
+                <div class="page-head-actions">
+                    <a class="btn" href="{{$.admin_path}}/export/{{$.table}}" title="Export as JSON">
+                        <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                        Export
+                    </a>
                     <button class="btn import-btn">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M5 20h14v-2H5v2zm0-10h4v6h6v-6h4l-7-7-7 7z" />
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg>
                         Import
                     </button>
-                    <button class="btn new-record">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                        </svg>
+                    <button class="btn btn-primary new-record">
+                        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
                         New record
                     </button>
                 </div>
             </div>
 
-            <data-table></data-table>
-            <div class="pagination-container">
-                <button class="prev-page">Previous</button>
-                <span class="current-page">Page 1</span>
-                <button class="next-page">Next</button>
+            {{if .relations}}
+            <div class="related-bar">
+                <span class="related-label">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    Related tables
+                </span>
+                {{range .relations}}
+                <a class="rel-chip {{if eq .Kind "belongs_to"}}out{{else}}in{{end}}" href="{{$.admin_path}}/tables/{{.Other}}" data-table="{{.Other}}"
+                   title="{{$.table}}.{{.Field}} → {{.Other}}.{{.OtherField}}">
+                    <span class="rel-chip-arrow">{{if eq .Kind "belongs_to"}}→{{else}}←{{end}}</span>
+                    {{.Other}}
+                    <span class="rel-chip-field">{{if eq .Kind "belongs_to"}}{{.Field}}{{else}}{{.OtherField}}{{end}}</span>
+                </a>
+                {{end}}
             </div>
+            {{end}}
+
+            <div class="table-toolbar">
+                <form class="table-search">
+                    <svg viewBox="0 0 24 24" class="search-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                    <input type="text" name="ssearch" id="ssearch" placeholder="id > 10 AND name LIKE '%John%'" class="search-input"
+                        autocomplete="off" spellcheck="false">
+                    <button type="submit" style="display:none"></button>
+                </form>
+                <div class="toolbar-hint">
+                    <kbd>Enter</kbd> to run · SQL where clause
+                </div>
+            </div>
+
+            <data-table></data-table>
+
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span id="rowsRange">–</span>
+                    <span class="pagination-total">of <strong id="rowsTotal">0</strong> rows</span>
+                </div>
+                <div class="pagination-controls">
+                    <button class="page-btn prev-page" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        Prev
+                    </button>
+                    <div class="page-numbers" id="pageNumbers"></div>
+                    <button class="page-btn next-page" type="button">
+                        Next
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                </div>
+            </div>
+
         </div>
     </main>
 </div>
@@ -62,7 +114,7 @@
     <div id="editPanel" class="side-panel">
         <div class="panel-header">
             <h2 class="panel-title">Edit record</h2>
-            <button class="panel-close">×</button>
+            <button class="panel-close" type="button">&times;</button>
         </div>
         <div class="panel-content"></div>
     </div>
@@ -74,7 +126,7 @@
     <div id="createPanel" class="side-panel">
         <div class="panel-header">
             <h2 class="panel-title">New record</h2>
-            <button class="panel-close">×</button>
+            <button class="panel-close" type="button">&times;</button>
         </div>
         <div class="panel-content"></div>
     </div>

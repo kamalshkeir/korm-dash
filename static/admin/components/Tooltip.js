@@ -37,15 +37,18 @@ class Tooltip {
             max-width: ${this.#options.maxWidth}px;
             visibility: hidden;
             opacity: 0;
-            transition: opacity 0.2s ease;
+            transition: opacity .2s ease;
             pointer-events: none;
-            background: #333;
-            color: white;
-            padding: 0.75rem 1rem;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            background: var(--text-primary, #0d1020);
+            color: var(--bg-surface, #fff);
+            padding: 9px 12px;
+            border-radius: var(--radius-xs, 8px);
+            font-family: var(--font-sans, sans-serif);
+            font-size: 12px;
+            line-height: 1.5;
+            box-shadow: var(--shadow-lg, 0 24px 60px -12px rgba(13,16,32,.22));
             white-space: pre-line;
+            text-align: left;
         `;
 
         document.body.appendChild(this.#tooltip);

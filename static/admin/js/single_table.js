@@ -1,3 +1,5 @@
+import { attachRelations } from '../components/Relations.js';
+
 const adminPath = document.body.dataset.path;
 const tableName = document.body.dataset.table;
 const search = document.querySelector("form.table-search");
@@ -5,13 +7,189 @@ const table = document.querySelector('data-table');
 let page = 1;
 const prevButton = document.querySelector('.prev-page');
 const nextButton = document.querySelector('.next-page');
-const currentPageSpan = document.querySelector('.current-page');
+const pageNumbers = document.getElementById('pageNumbers');
+const rowsRange = document.getElementById('rowsRange');
+const rowsTotal = document.getElementById('rowsTotal');
+const PER_PAGE = 10;
 
-let unsub;
+/**
+ * Columns that make a good human label for a related row, best first.
+ */
+const FK_LABEL_PRIORITY = [
+    'name', 'title', 'label', 'email', 'username', 'full_name', 'first_name',
+    'last_name', 'display_name', 'nickname', 'slug', 'subject', 'headline',
+    'code', 'status', 'type', 'text', 'body', 'content', 'description'
+];
 
-window.addEventListener('beforeunload', () => {
-    unsub.Unsubscribe()
-});
+/**
+ * Columns that never make a good label (technical, bulky or noisy).
+ */
+const FK_LABEL_NOISE = /^(id|created_at|updated_at|deleted_at|created|updated|password|passwd|pwd|token|secret|hash|salt|image|img|photo|avatar|picture|url|link|json|payload|meta|uuid|guid|ip|ip_address|user_agent|content_hash)$/i;
+
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[c]));
+
+/**
+ * Extract the most meaningful column of a referenced row.
+ * Returns an empty string when nothing better than the raw value exists.
+ *
+ * @param {object|null} row  the referenced row
+ * @param {*} value           the foreign-key value (usually the primary key)
+ * @returns {string}
+ */
+function resolveFkDisplay(row, value) {
+    const raw = value === null || value === undefined ? '' : String(value);
+    if (!row || typeof row !== 'object') return '';
+
+    const entries = Object.entries(row).filter(([, val]) =>
+        val !== null && val !== undefined && val !== '' && typeof val !== 'object');
+
+    if (!entries.length) return '';
+
+    let picked = null;
+
+    // 1. Exact match on a human-friendly column name.
+    for (const candidate of FK_LABEL_PRIORITY) {
+        const found = entries.find(([key]) => key.toLowerCase() === candidate);
+        if (found) { picked = found; break; }
+    }
+
+    // 2. A column whose name contains a human-friendly keyword.
+    if (!picked) {
+        for (const candidate of FK_LABEL_PRIORITY) {
+            const found = entries.find(([key]) =>
+                !FK_LABEL_NOISE.test(key) && key.toLowerCase().includes(candidate));
+            if (found) { picked = found; break; }
+        }
+    }
+
+    // 3. Any other short, non-noisy column.
+    if (!picked) {
+        picked = entries.find(([key]) => !FK_LABEL_NOISE.test(key)) || entries[0];
+    }
+
+    const display = String(picked[1]);
+    return display === raw ? '' : display;
+}
+
+/**
+ * Build a readable label for a foreign-key option.
+ * Instead of dumping the whole row as JSON, we show the referenced value
+ * followed by the most meaningful column of that row (name, title, email…).
+ *
+ * @param {object|null} row  the referenced row
+ * @param {*} value           the foreign-key value (usually the primary key)
+ * @returns {string}
+ */
+function humanizeFkLabel(row, value) {
+    const raw = value === null || value === undefined ? '' : String(value);
+    const display = resolveFkDisplay(row, value);
+    if (!display) return raw;
+    const short = display.length > 48 ? `${display.slice(0, 48)}…` : display;
+    return `${raw} · ${short}`;
+}
+
+/**
+ * Show, under each foreign-key field, the row it currently points to.
+ */
+function setupFkHints(root, fkeys, fkeysModels) {
+    if (!root || !fkeys) return;
+    Object.keys(fkeys).forEach(col => {
+        const input = root.querySelector(`input[name="${col}"]`);
+        const hint = root.querySelector(`[data-fk-hint="${col}"]`);
+        if (!input || !hint) return;
+
+        const values = fkeys[col] || [];
+        const models = fkeysModels[col] || [];
+
+        const refresh = () => {
+            const raw = String(input.value ?? '').trim();
+            const index = values.findIndex(v => String(v) === raw);
+            if (index < 0 || !models[index]) {
+                hint.textContent = '';
+                hint.classList.remove('visible');
+                return;
+            }
+            const display = resolveFkDisplay(models[index], raw);
+            if (!display) {
+                hint.textContent = '';
+                hint.classList.remove('visible');
+                return;
+            }
+            hint.innerHTML = `<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span>${escapeHtml(display)}</span>`;
+            hint.classList.add('visible');
+        };
+
+        input.addEventListener('input', refresh);
+        input.addEventListener('change', refresh);
+        refresh();
+    });
+}
+
+
+/**
+ * Render the pagination controls and the "x – y of z rows" summary.
+ */
+function renderPagination(total) {
+    const totalPages = Math.max(1, Math.ceil((total || 0) / PER_PAGE));
+
+    if (rowsTotal) rowsTotal.textContent = total ?? 0;
+    if (rowsRange) {
+        if (!total) {
+            rowsRange.textContent = '0 rows';
+        } else {
+            const start = (page - 1) * PER_PAGE + 1;
+            const end = Math.min(page * PER_PAGE, total);
+            rowsRange.textContent = `${start}–${end}`;
+        }
+    }
+
+    if (nextButton) nextButton.disabled = page >= totalPages;
+    if (prevButton) prevButton.disabled = page <= 1;
+
+    if (!pageNumbers) return;
+    pageNumbers.innerHTML = '';
+
+    const addBtn = (label, targetPage, opts = {}) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'page-number' + (opts.active ? ' active' : '');
+        btn.textContent = label;
+        if (opts.disabled) {
+            btn.disabled = true;
+            btn.style.visibility = 'hidden';
+        } else {
+            btn.addEventListener('click', () => {
+                page = targetPage;
+                loadTableData();
+            });
+        }
+        pageNumbers.appendChild(btn);
+    };
+
+    const addEllipsis = () => {
+        const span = document.createElement('span');
+        span.className = 'page-ellipsis';
+        span.textContent = '…';
+        pageNumbers.appendChild(span);
+    };
+
+    const window_ = 1;
+    const pages = new Set([1, totalPages, page]);
+    for (let i = 1; i <= window_; i++) {
+        pages.add(page - i);
+        pages.add(page + i);
+    }
+    const visible = [...pages].filter(p => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+
+    let last = 0;
+    visible.forEach(p => {
+        if (p - last > 1) addEllipsis();
+        addBtn(String(p), p, { active: p === page });
+        last = p;
+    });
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     let serverData = null;
@@ -56,15 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.success) {
                 serverData = data.success;
                 table.tableData = serverData;
-                currentPageSpan.textContent = `Page ${page}`;
-
-                // Calculate if we're on the last page
-                const totalPages = Math.ceil(serverData.total / 10); // Assuming 10 per page
-                nextButton.disabled = page >= totalPages;
-                prevButton.disabled = page <= 1;
-
-                // Update page display
-                currentPageSpan.textContent = `Page ${page} of ${totalPages}`;
+                renderPagination(serverData.total);
             }
         });
     }
@@ -144,12 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     total: data.total
                 };
                 table.data = data.rows;
-                // Calculate if we're on the last page
-                const totalPages = Math.ceil(data.total / 10); // Assuming 10 per page
-                nextButton.disabled = page >= totalPages;
-                prevButton.disabled = page <= 1;
-                // Update page display
-                currentPageSpan.textContent = `Page ${page} of ${totalPages}`;
+                renderPagination(data.total);
             }
         })
     })
@@ -167,6 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             setupImagePreviews();
             setupJoditEditor(panel);
+            setupFkHints(panel, serverData?.fkeys, serverData?.fkeysModels);
 
             // Track changed fields
             const changedFields = new Set();
@@ -274,6 +440,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 setupImagePreviews();
                 setupJoditEditor(panel);
+                setupFkHints(panel, serverData?.fkeys, serverData?.fkeysModels);
 
                 // Handle ADD ROW - simplified without change tracking
                 const form = panel.querySelector('form');
@@ -369,16 +536,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Load table data
-    fetch(adminPath + "/tables/all/" + tableName, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ "page": 1 })
-    }).then(response => response.json()).then(data => {
-        if (data.success) {
-            serverData = data.success;
-            table.tableData = serverData;
-        }
-    });
+    loadTableData();
 
     // Add helper function to update table with data
     const updateTableWithData = (data) => {
@@ -392,11 +550,13 @@ document.addEventListener("DOMContentLoaded", () => {
             total: data.total
         };
         table.data = data.rows;
-        const totalPages = Math.ceil(data.total / 10);
-        nextButton.disabled = page >= totalPages;
-        prevButton.disabled = page <= 1;
-        currentPageSpan.textContent = `Page ${page} of ${totalPages}`;
+        renderPagination(data.total);
     }
+
+    // Related tables in the "Related tables" bar reveal their own relations.
+    document.querySelectorAll('.related-bar .rel-chip[data-table]').forEach(chip => {
+        attachRelations(chip, chip.dataset.table);
+    });
 });
 
 
@@ -411,11 +571,9 @@ function generateForm(data) {
         if (isEdit && (col === pk || col === 'id')) {
             return `
                 <div class="form-group">
-                    <label for="${col}">${col}:</label>
-                    <div style="margin: 10px 0 10px 0;"></div>
+                    <label for="${col}">${col}</label>
                     <input type="text" id="${col}" name="${col}" class="form-control input" value="${rowData[col]}" disabled>
                 </div>
-                <div style="margin: 10px 0 10px 0;"></div>
             `;
         }
 
@@ -441,13 +599,7 @@ function generateForm(data) {
         if (!isEdit && col.toLowerCase().includes('uuid') && !fkeys[col]) {
             input = `<input type="text" id="${col}" name="${col}" class="form-control input" value="${crypto.randomUUID()}" readonly>`;
         } else if (fkeys && fkeys[col]) {
-            // Add debug logging for the database values
-            console.log(`Database values for ${col}:`, fkeys[col].map(v => ({
-                value: v,
-                length: v.length,
-                bytes: Array.from(v).map(c => c.charCodeAt(0))
-            })));
-
+            const models = fkeysModels[col] || [];
             input = `
                 <input type="text" class="form-control input" 
                     name="${col}" id="${col}" 
@@ -455,10 +607,12 @@ function generateForm(data) {
                     ${readOnlyAttr}
                     value="${isEdit ? rowData[col] || '' : ''}">
                 <datalist id="${col}-options">
-                    ${fkeys[col].map((v, i) => `
-                        <option value="${v}">${JSON.stringify(fkeysModels[col][i])}</option>
-                    `).join('')}
+                    ${fkeys[col].map((v, i) => {
+                        const label = humanizeFkLabel(models[i], v);
+                        return `<option value="${escapeHtml(v)}" label="${escapeHtml(label)}">${escapeHtml(label)}</option>`;
+                    }).join('')}
                 </datalist>
+                <small class="fk-hint" data-fk-hint="${col}"></small>
             `;
         } else if (isImageField(col)) {
             const currentImage = isEdit && rowData[col] ? rowData[col] : '';
@@ -491,11 +645,12 @@ function generateForm(data) {
         } else if (type.includes('bool')) {
             const isChecked = isEdit && rowData[col] == 1;
             input = `
-                <div class="form-group toggle-group">
+                <div class="toggle-group">
                     <label class="toggle">
                         <input type="checkbox" class="input" id="${col}" name="${col}" ${isChecked ? 'checked' : ''}>
                         <span class="toggle-slider"></span>
                     </label>
+                    <span class="toggle-label">${isChecked ? 'Enabled' : 'Disabled'}</span>
                 </div>
             `;
         } else if (col === 'password') {
@@ -515,22 +670,20 @@ function generateForm(data) {
 
         return `
             <div class="form-group">
-                <label for="${col}">${col}:</label>
-                <div style="margin: 10px 0 10px 0;"></div>
+                <label for="${col}">${col}</label>
                 ${input}
             </div>
-            <div style="margin: 10px 0 10px 0;"></div>
         `;
     }).join('');
 
     return `
         <form class="edit-form" autocomplete="off">
             ${formFields}
-            <div style="margin: 10px 0 10px 0;"></div>
-            <button class="btn" style="border-radius: 10px;width:150px;margin:0 auto;" type="submit">
-                ${isEdit ? 'Save changes' : 'Create'}
-            </button>
-            <div style="margin: 20px 0 20px 0;"></div>
+            <div class="panel-actions">
+                <button class="btn btn-primary" type="submit">
+                    ${isEdit ? 'Save changes' : 'Create record'}
+                </button>
+            </div>
         </form>
     `;
 }

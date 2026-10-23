@@ -16,10 +16,11 @@ class SlidePanel extends HTMLElement {
                     right: -100%;
                     width: min(600px, 100%);
                     height: 100vh;
-                    background: white;
-                    box-shadow: -4px 0 6px -1px rgb(0 0 0 / 0.1);
+                    background: var(--bg-surface);
+                    border-left: 1px solid var(--border-subtle);
+                    box-shadow: var(--shadow-lg);
                     z-index: 1001;
-                    transition: right 0.3s ease;
+                    transition: right .3s var(--ease-out);
                     display: flex;
                     flex-direction: column;
                     box-sizing: border-box;
@@ -31,17 +32,19 @@ class SlidePanel extends HTMLElement {
                 }
 
                 .slide-panel-header {
-                    padding: 1rem 1.5rem;
-                    border-bottom: 1px solid var(--border-color);
+                    padding: 18px 22px;
+                    background: var(--bg-surface-2);
+                    border-bottom: 1px solid var(--border-subtle);
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
                 }
 
                 .slide-panel-title {
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    color: #0f172a;
+                    font-family: var(--font-display);
+                    font-size: 1.1rem;
+                    font-weight: 800;
+                    color: var(--text-primary);
                 }
 
                 .close-btn {
@@ -49,18 +52,20 @@ class SlidePanel extends HTMLElement {
                     border: none;
                     background: none;
                     cursor: pointer;
-                    border-radius: 0.5rem;
-                    color: var(--text-gray);
+                    border-radius: var(--radius-xs);
+                    color: var(--text-muted);
+                    transition: all .16s ease;
                 }
 
                 .close-btn:hover {
-                    background: var(--bg-gray);
+                    background: var(--bg-surface-3);
+                    color: var(--text-primary);
                 }
 
                 .slide-panel-content {
                     flex: 1;
                     overflow-y: auto;
-                    padding: 1.5rem;
+                    padding: 22px;
                 }
 
                 .overlay {
@@ -69,10 +74,12 @@ class SlidePanel extends HTMLElement {
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: rgba(0, 0, 0, 0.5);
+                    background: var(--bg-overlay);
+                    backdrop-filter: blur(4px);
+                    -webkit-backdrop-filter: blur(4px);
                     opacity: 0;
                     visibility: hidden;
-                    transition: all 0.3s ease;
+                    transition: all .3s var(--ease-out);
                     z-index: 1000;
                     margin-right: var(--scrollbar-width, 0px);
                 }
@@ -132,8 +139,9 @@ class SlidePanel extends HTMLElement {
                 <div class="slide-panel-header">
                     <h2 class="slide-panel-title">${title}</h2>
                     <button class="close-btn">
-                        <svg viewBox="0 0 24 24" width="24" height="24">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round">
+                            <path d="M18 6 6 18M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>

@@ -12,9 +12,16 @@
     <main class="main-content">
         <app-header titre="Logs And Metrics" username="{{.User.Username}}" email="{{.User.Email}}" logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
         <div class="content-area">
+            <div class="page-head">
+                <div>
+                    <h2>Logs &amp; metrics</h2>
+                    <p>Runtime health of your process and the live log stream coming from your application.</p>
+                </div>
+            </div>
+
             <div class="metrics-controls">
                 <div class="refresh-control">
-                    <label for="refresh-interval">Refresh Interval:</label>
+                    <label for="refresh-interval">Refresh interval</label>
                     <select id="refresh-interval">
                         <option value="1000">1 second</option>
                         <option value="5000" selected>5 seconds</option>
@@ -26,11 +33,11 @@
                 <div class="auto-refresh">
                     <label>
                         <input type="checkbox" id="auto-refresh">
-                        Auto Refresh
+                        Auto refresh
                     </label>
                     <button id="refresh-now" class="refresh-button">
-                        <span class="refresh-icon">🔄</span>
-                        Refresh Now
+                        <svg class="refresh-icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+                        Refresh now
                     </button>
                 </div>
             </div>
