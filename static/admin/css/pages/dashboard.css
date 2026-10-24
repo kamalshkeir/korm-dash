@@ -340,7 +340,7 @@
     border-radius: var(--radius-md);
     background:
         radial-gradient(ellipse at 50% 50%, rgba(237, 67, 67, 0.04) 0%, transparent 70%),
-        radial-gradient(circle at 1px 1px, var(--border-subtle) 1.2px, transparent 0),
+        radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1.2px, transparent 0),
         #0a0e17;
     background-size: 100% 100%, 28px 28px, 100% 100%;
     border: 1px solid var(--border-subtle);
@@ -354,12 +354,13 @@
     cursor: grabbing;
 }
 
-.schema-loading {
+.schema-loading,
+.schema-empty {
     display: grid;
     place-items: center;
     height: 100%;
     min-height: 480px;
-    color: var(--text-muted);
+    color: #9aa2bc;
     font-size: 13.5px;
     font-weight: 500;
 }
@@ -373,7 +374,7 @@
 
 .sg-edge {
     fill: none;
-    stroke: var(--border-strong);
+    stroke: rgba(255, 255, 255, 0.22);
     stroke-width: 1.8;
     transition: stroke 220ms ease, stroke-width 220ms ease, opacity 220ms ease, filter 220ms ease;
 }
@@ -412,7 +413,7 @@
 
 .sg-node circle.body {
     fill: #141926;
-    stroke: var(--border-strong);
+    stroke: rgba(255, 255, 255, 0.22);
     stroke-width: 2;
     outline: none !important;
     transition: stroke 220ms ease, stroke-width 220ms ease, filter 220ms ease, fill 220ms ease;
@@ -439,7 +440,7 @@
     font-family: var(--font-mono);
     font-size: 11.5px;
     font-weight: 700;
-    fill: var(--text-primary);
+    fill: #eceefb;
     text-anchor: middle;
     dominant-baseline: middle;
     pointer-events: none;
@@ -449,7 +450,7 @@
 .sg-node .count {
     font-size: 9.5px;
     font-weight: 600;
-    fill: var(--text-muted);
+    fill: #9aa2bc;
 }
 
 .schema-footer {
