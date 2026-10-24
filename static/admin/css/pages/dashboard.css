@@ -73,6 +73,7 @@
         transform: scale(0.6);
         opacity: 0.9;
     }
+
     100% {
         transform: scale(1.5);
         opacity: 0;
@@ -239,85 +240,204 @@
     text-decoration: underline;
 }
 
-/* ---------- schema graph ---------- */
+/* ---------- schema graph (Full Width Showcase) ---------- */
 .schema-card {
-    min-height: 380px;
+    min-height: 600px;
     display: flex;
     flex-direction: column;
+    margin-bottom: 24px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.schema-card.is-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 99999 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 24px 32px !important;
+    background: #0d111a !important;
+    box-shadow: none !important;
+}
+
+.schema-card.is-fullscreen .schema-graph {
+    height: calc(100vh - 150px) !important;
+    min-height: auto !important;
+}
+
+.schema-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.schema-header .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+}
+
+.schema-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sg-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    height: 32px;
+    border-radius: var(--radius-sm, 8px);
+    border: 1px solid var(--border-subtle);
+    background: color-mix(in srgb, var(--bg-surface-2, #181d29) 90%, transparent);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, color 0.15s ease;
+}
+
+.sg-tool-btn:hover {
+    background: color-mix(in srgb, var(--bg-surface-3, #22293a) 100%, transparent);
+    border-color: var(--border-strong);
+    color: var(--theme-color);
+    transform: translateY(-1px);
+}
+
+.sg-tool-btn:active {
+    transform: translateY(0);
+}
+
+.sg-tool-btn svg {
+    flex-shrink: 0;
+}
+
+.sg-btn-fullscreen {
+    background: color-mix(in srgb, var(--theme-color) 12%, var(--bg-surface-2, #181d29));
+    border-color: color-mix(in srgb, var(--theme-color) 35%, transparent);
+    color: var(--theme-color);
+}
+
+.sg-btn-fullscreen:hover {
+    background: color-mix(in srgb, var(--theme-color) 22%, var(--bg-surface-2, #181d29));
 }
 
 .schema-graph {
     position: relative;
     flex: 1;
-    min-height: 300px;
+    min-height: 520px;
+    height: 540px;
     border-radius: var(--radius-md);
     background:
-        radial-gradient(circle at 1px 1px, var(--border-subtle) 1px, transparent 0);
-    background-size: 22px 22px;
+        radial-gradient(ellipse at 50% 50%, rgba(237, 67, 67, 0.04) 0%, transparent 70%),
+        radial-gradient(circle at 1px 1px, var(--border-subtle) 1.2px, transparent 0),
+        #0a0e17;
+    background-size: 100% 100%, 28px 28px, 100% 100%;
     border: 1px solid var(--border-subtle);
     overflow: hidden;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.schema-graph.is-panning {
+    cursor: grabbing;
 }
 
 .schema-loading {
     display: grid;
     place-items: center;
     height: 100%;
-    min-height: 300px;
+    min-height: 480px;
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: 13.5px;
+    font-weight: 500;
 }
 
 .schema-graph svg {
     width: 100%;
     height: 100%;
     display: block;
+    overflow: visible;
 }
 
 .sg-edge {
     fill: none;
     stroke: var(--border-strong);
-    stroke-width: 1.6;
-    transition: stroke 220ms ease, stroke-width 220ms ease, opacity 220ms ease;
+    stroke-width: 1.8;
+    transition: stroke 220ms ease, stroke-width 220ms ease, opacity 220ms ease, filter 220ms ease;
 }
 
 .sg-edge.active {
     stroke: var(--theme-color);
-    stroke-width: 2.4;
+    stroke-width: 2.8;
+    filter: drop-shadow(0 0 6px var(--theme-color));
 }
 
 .sg-edge.dim {
-    opacity: 0.16;
+    opacity: 0.12;
 }
 
 .sg-node {
-    cursor: pointer;
+    cursor: grab;
+    transition: opacity 220ms ease;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.sg-node:focus,
+.sg-node:focus-visible,
+.sg-node:active,
+.schema-graph:focus,
+.schema-graph:focus-visible,
+.schema-graph svg:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.sg-node.is-dragging {
+    cursor: grabbing !important;
+    outline: none !important;
 }
 
 .sg-node circle.body {
-    fill: var(--bg-surface);
+    fill: #141926;
     stroke: var(--border-strong);
-    stroke-width: 1.8;
-    transition: stroke 220ms ease, stroke-width 220ms ease, filter 220ms ease;
+    stroke-width: 2;
+    outline: none !important;
+    transition: stroke 220ms ease, stroke-width 220ms ease, filter 220ms ease, fill 220ms ease;
 }
 
 .sg-node.system circle.body {
-    fill: color-mix(in srgb, var(--theme-color) 16%, var(--bg-surface));
-    stroke: var(--theme-color);
+    fill: color-mix(in srgb, var(--theme-color) 14%, #141926);
+    stroke: color-mix(in srgb, var(--theme-color) 70%, transparent);
 }
 
+.sg-node:hover circle.body,
 .sg-node.active circle.body {
     stroke: var(--theme-color);
-    stroke-width: 3;
-    filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--theme-color) 55%, transparent));
+    stroke-width: 3.2;
+    fill: color-mix(in srgb, var(--theme-color) 22%, #141926);
+    filter: drop-shadow(0 0 16px color-mix(in srgb, var(--theme-color) 65%, transparent));
 }
 
 .sg-node.dim {
-    opacity: 0.28;
+    opacity: 0.22;
 }
 
 .sg-node text {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 700;
     fill: var(--text-primary);
     text-anchor: middle;
@@ -327,94 +447,116 @@
 }
 
 .sg-node .count {
-    font-size: 9px;
+    font-size: 9.5px;
     font-weight: 600;
     fill: var(--text-muted);
 }
 
-.sg-empty {
-    display: grid;
-    place-items: center;
-    height: 100%;
-    min-height: 280px;
-    color: var(--text-muted);
-    font-size: 13px;
-    text-align: center;
-    padding: 20px;
+.schema-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 14px;
 }
 
 .schema-legend {
     display: flex;
-    gap: 16px;
+    gap: 18px;
     flex-wrap: wrap;
-    margin-top: 12px;
-    font-size: 11.5px;
+    font-size: 12px;
     color: var(--text-muted);
 }
 
 .schema-legend span {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
 }
 
 .legend-dot {
-    width: 9px;
-    height: 9px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     border: 1.5px solid var(--border-strong);
     background: var(--bg-surface);
 }
 
 .legend-dot.system {
-    background: color-mix(in srgb, var(--theme-color) 30%, transparent);
+    background: color-mix(in srgb, var(--theme-color) 35%, transparent);
     border-color: var(--theme-color);
 }
 
 .legend-line {
-    width: 16px;
+    width: 18px;
     height: 0;
     border-top: 2px solid var(--border-strong);
 }
 
-/* ---------- tables list ---------- */
-.dash-table-list {
+.schema-meta {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    max-height: 380px;
-    overflow-y: auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.schema-meta-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--bg-surface-2, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--border-subtle);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* ---------- tables list (Responsive Grid) ---------- */
+.tables-card {
+    margin-top: 8px;
+}
+
+.dash-table-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
 }
 
 .dash-table {
     display: flex;
     align-items: center;
-    gap: 11px;
-    padding: 9px 11px;
-    border-radius: var(--radius-sm);
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm, 10px);
+    border: 1px solid var(--border-subtle);
+    background: color-mix(in srgb, var(--bg-surface-2, #181d29) 60%, transparent);
     text-decoration: none;
     color: inherit;
-    transition: background-color var(--dur-fast) var(--ease-out);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dash-table:hover {
-    background: var(--bg-surface-3);
+    background: color-mix(in srgb, var(--bg-surface-3, #22293a) 90%, transparent);
+    border-color: color-mix(in srgb, var(--theme-color) 40%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.4);
 }
 
 .dash-table-icon {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     flex-shrink: 0;
     display: grid;
     place-items: center;
-    border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--theme-color) 10%, transparent);
+    border-radius: var(--radius-sm, 8px);
+    background: color-mix(in srgb, var(--theme-color) 12%, transparent);
     color: var(--theme-color);
 }
 
 .dash-table-icon svg {
-    width: 17px;
-    height: 17px;
+    width: 18px;
+    height: 18px;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.8;
@@ -431,7 +573,7 @@
 
 .dash-table-name {
     font-family: var(--font-mono);
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--text-primary);
     overflow: hidden;
