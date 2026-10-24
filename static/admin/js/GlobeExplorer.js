@@ -107,6 +107,7 @@ export class GlobeExplorer {
             return;
         }
 
+        const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
         this.map = new maplibregl.Map({
             container,
             style: this.currentTheme === 'dark' ? GlobeExplorer.STYLES.dark : GlobeExplorer.STYLES.light,
@@ -115,6 +116,8 @@ export class GlobeExplorer {
             pitch: this.options.pitch,
             bearing: this.options.bearing,
             maxPitch: 80,
+            pixelRatio: Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2),
+            maxTileCacheSize: isMobile ? 40 : 100,
             boxZoom: false, // Disabling boxZoom frees up Shift+Drag for 3D rotation & tilt
             renderWorldCopies: false,
             crossSourceCollisions: false,
@@ -123,7 +126,7 @@ export class GlobeExplorer {
                 antialias: (window.devicePixelRatio || 1) < 2,
                 powerPreference: 'high-performance'
             },
-            fadeDuration: 100,
+            fadeDuration: isMobile ? 0 : 50,
             dragPan: {
                 linearity: 0.22,
                 maxSpeed: 2200,
