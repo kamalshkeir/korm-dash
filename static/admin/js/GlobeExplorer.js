@@ -118,6 +118,19 @@ export class GlobeExplorer {
             @keyframes lg-rotate {
                 to { transform: rotate(360deg); }
             }
+
+            /* Target marker wrapper: ensures MapLibre transform is never overwritten by CSS animation */
+            .target-marker-wrapper {
+                display: block;
+                pointer-events: auto;
+            }
+            .admin-pin.target {
+                animation: lg-target-pulse 1.8s infinite !important;
+            }
+            @keyframes lg-target-pulse {
+                0%, 100% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4); }
+                50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.6), 0 12px 28px rgba(0, 0, 0, 0.5); }
+            }
         `;
         document.head.appendChild(style);
     }
@@ -505,11 +518,18 @@ export class GlobeExplorer {
     // ---------- Target Marker & Inspector ----------
     setTargetMarker(lat, lng, title = 'Selected Location') {
         if (!this.map) return;
+        lat = Number(lat);
+        lng = Number(lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
         if (!this.targetMarker) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'target-marker-wrapper';
             const el = document.createElement('div');
             el.className = 'admin-pin target';
             el.innerHTML = '🎯';
-            this.targetMarker = new maplibregl.Marker({ element: el, anchor: 'center' })
+            wrapper.appendChild(el);
+            this.targetMarker = new maplibregl.Marker({ element: wrapper, anchor: 'center' })
                 .setLngLat([lng, lat])
                 .addTo(this.map);
         } else {
@@ -518,11 +538,13 @@ export class GlobeExplorer {
 
         this.lastClickedCoords = { lat, lng };
         this._updateCoordBar(lat, lng);
-        this._showDrawer('target', title, {
-            'Latitude': lat.toFixed(6),
-            'Longitude': lng.toFixed(6),
-            'Google Maps': `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" rel="noopener">Open in Google Maps ↗</a>`
-        }, { lat, lng, canSave: true });
+        if (this.options.enableInspector) {
+            this._showDrawer('target', title, {
+                'Latitude': lat.toFixed(6),
+                'Longitude': lng.toFixed(6),
+                'Google Maps': `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" rel="noopener">Open in Google Maps ↗</a>`
+            }, { lat, lng, canSave: true });
+        }
     }
 
     clearTargetMarker() {
