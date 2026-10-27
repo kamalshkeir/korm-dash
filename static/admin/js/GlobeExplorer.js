@@ -19,7 +19,112 @@ export class GlobeExplorer {
     static TERRAIN_TILES = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
     static SAT_TILES = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
+    static injectStyles() {
+        if (typeof document === 'undefined' || document.getElementById('globe-explorer-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'globe-explorer-styles';
+        style.textContent = `
+            .lg-me {
+                width: 22px;
+                height: 22px;
+                position: relative;
+                pointer-events: none;
+            }
+            .lg-me .lg-me-dot {
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: #3b82f6;
+                border: 3px solid #fff;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, .45);
+            }
+            .lg-me .lg-me-ring {
+                position: absolute;
+                inset: -14px;
+                border-radius: 50%;
+                background: rgba(59, 130, 246, .35);
+                animation: lg-me-pulse 2s ease-out infinite;
+            }
+            .lg-me .lg-me-label {
+                position: absolute;
+                top: calc(100% + 6px);
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 2px 8px;
+                border-radius: 6px;
+                background: #3b82f6;
+                color: #fff;
+                font-size: 11px;
+                font-weight: 800;
+                white-space: nowrap;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, .3);
+            }
+            @keyframes lg-me-pulse {
+                0% { transform: scale(.4); opacity: 1; }
+                100% { transform: scale(1.6); opacity: 0; }
+            }
+            .lg-controls {
+                position: absolute;
+                right: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                z-index: 50;
+                pointer-events: auto;
+            }
+            .lg-fab {
+                display: grid;
+                place-items: center;
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+                cursor: pointer;
+                background: rgba(15, 23, 42, 0.85);
+                color: #f8fafc;
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+                transition: transform .2s cubic-bezier(.2, .9, .3, 1.4), background .2s, color .2s, border-color .2s;
+            }
+            body:not(.dark) .lg-fab {
+                background: rgba(255, 255, 255, 0.92);
+                color: #0f172a;
+                border-color: rgba(0, 0, 0, 0.15);
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            }
+            .lg-fab:hover {
+                transform: translateY(-2px);
+                color: #3b82f6;
+                border-color: #3b82f6;
+            }
+            .lg-fab:active {
+                transform: scale(.94);
+            }
+            .lg-fab.is-active,
+            #lg-locate.is-active,
+            #btn-locate-me.is-active {
+                background: #3b82f6 !important;
+                color: #ffffff !important;
+                border-color: #3b82f6 !important;
+            }
+            .lg-fab.is-loading svg,
+            #btn-locate-me.is-loading svg,
+            .is-loading svg {
+                animation: lg-rotate 1s linear infinite;
+            }
+            @keyframes lg-rotate {
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     constructor(options = {}) {
+        GlobeExplorer.injectStyles();
+
         this.options = Object.assign({
             container: '#admin-globe-map',
             wrapper: '#admin-globe-wrapper',
@@ -44,6 +149,9 @@ export class GlobeExplorer {
         this.tilt3d = true;
         this.pinMode = false;
         this.targetMarker = null;
+        this.meMarker = null;
+        this.me = null;
+        this.watchId = null;
         this.lastClickedCoords = null;
         this.currentTheme = this.options.theme;
         this.currentSuggestions = [];
@@ -154,6 +262,7 @@ export class GlobeExplorer {
             this._decorateMap();
             this._renderAllPins();
             this._renderCustomLayers();
+            this._ensureLocateUI();
         });
 
         this.map.on('click', e => {
@@ -319,6 +428,7 @@ export class GlobeExplorer {
             this._decorateMap();
             this._renderAllPins();
             this._renderCustomLayers();
+            if (this.me) this.renderMeAcc();
             if (this.satEnabled) this.toggleSatellite(true);
         });
     }
@@ -429,6 +539,7 @@ export class GlobeExplorer {
     }
 
     _updateCoordBar(lat, lng) {
+        this.lastClickedCoords = { lat, lng };
         const barText = document.getElementById('coord-display-text');
         const btnCopy = document.getElementById('btn-copy-latlng');
         if (barText) {
@@ -836,6 +947,7 @@ export class GlobeExplorer {
         document.getElementById('btn-toggle-satellite')?.addEventListener('click', () => this.toggleSatellite());
         document.getElementById('btn-toggle-tilt')?.addEventListener('click', () => this.toggleTilt());
         document.getElementById('btn-reset-view')?.addEventListener('click', () => this.resetView());
+        document.getElementById('btn-reset-lebanon')?.addEventListener('click', () => this.resetView());
         document.getElementById('btn-toggle-fullscreen')?.addEventListener('click', () => this.toggleFullscreen());
 
         document.addEventListener('fullscreenchange', () => {
@@ -849,10 +961,219 @@ export class GlobeExplorer {
             setTimeout(() => this.resize(), 300);
         });
 
+        // Ensure Localise Me buttons (floating FAB and HUD pill)
+        this._ensureLocateUI();
+
+        // Copy Coordinates Button
+        const btnCopy = document.getElementById('btn-copy-latlng');
+        btnCopy?.addEventListener('click', e => {
+            e.stopPropagation();
+            let txt = '';
+            if (this.lastClickedCoords) {
+                txt = `${this.lastClickedCoords.lat.toFixed(6)}, ${this.lastClickedCoords.lng.toFixed(6)}`;
+            } else {
+                const barText = document.getElementById('coord-display-text')?.textContent || '';
+                const match = barText.match(/Lat:\s*([-\d.]+),\s*Lng:\s*([-\d.]+)/i);
+                if (match) {
+                    txt = `${parseFloat(match[1]).toFixed(6)}, ${parseFloat(match[2]).toFixed(6)}`;
+                }
+            }
+            if (!txt) return;
+
+            const onCopied = () => {
+                const span = btnCopy.querySelector('span') || btnCopy;
+                const orig = span.textContent;
+                span.textContent = 'Copied!';
+                btnCopy.style.background = '#22c55e';
+                btnCopy.style.borderColor = '#22c55e';
+                if (window.Notif?.New) {
+                    window.Notif.New({ title: 'Copied', message: `${txt} copied to clipboard`, type: 'success', duration: 2500 }).show();
+                }
+                setTimeout(() => {
+                    span.textContent = orig || 'Copy';
+                    btnCopy.style.background = '';
+                    btnCopy.style.borderColor = '';
+                }, 2000);
+            };
+
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(txt).then(onCopied).catch(() => {
+                    this._copyFallback(txt);
+                    onCopied();
+                });
+            } else {
+                this._copyFallback(txt);
+                onCopied();
+            }
+        });
+
         // Drawer Close
         document.getElementById('drawer-close')?.addEventListener('click', () => {
             this.clearTargetMarker();
         });
+    }
+
+    _copyFallback(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try { document.execCommand('copy'); } catch (_) { }
+        document.body.removeChild(ta);
+    }
+
+    _ensureLocateUI() {
+        const wrapper = typeof this.options.wrapper === 'string'
+            ? document.querySelector(this.options.wrapper)
+            : this.options.wrapper;
+        const container = this.map?.getContainer() || (typeof this.options.container === 'string' ? document.querySelector(this.options.container) : this.options.container);
+        const mountTarget = wrapper || container;
+
+        if (mountTarget && !mountTarget.querySelector('#lg-locate')) {
+            let controls = mountTarget.querySelector('.lg-controls');
+            if (!controls) {
+                controls = document.createElement('div');
+                controls.className = 'lg-controls';
+                mountTarget.appendChild(controls);
+            }
+            const locateBtn = document.createElement('button');
+            locateBtn.type = 'button';
+            locateBtn.className = 'lg-fab lg-glass';
+            locateBtn.id = 'lg-locate';
+            locateBtn.title = 'Locate me (GPS)';
+            locateBtn.setAttribute('aria-label', 'Locate me');
+            locateBtn.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>`;
+            controls.appendChild(locateBtn);
+            locateBtn.addEventListener('click', () => this.locateMe());
+        }
+
+        const hudPillGroups = document.querySelectorAll('.hud-pill-group');
+        if (hudPillGroups.length > 0 && !document.getElementById('btn-locate-me')) {
+            const targetGroup = hudPillGroups[hudPillGroups.length - 1];
+            const hudBtn = document.createElement('button');
+            hudBtn.type = 'button';
+            hudBtn.className = 'hud-pill';
+            hudBtn.id = 'btn-locate-me';
+            hudBtn.title = 'Locate me (GPS)';
+            hudBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+                <span>Localise Me</span>
+            `;
+            targetGroup.insertBefore(hudBtn, targetGroup.firstChild);
+            hudBtn.addEventListener('click', () => this.locateMe());
+        }
+    }
+
+    // ---------- Geolocation (identical to search_globe.js) ----------
+    locateMe() {
+        const locateBtns = [document.getElementById('lg-locate'), document.getElementById('btn-locate-me')].filter(Boolean);
+        const setLoading = loading => {
+            locateBtns.forEach(b => {
+                b.classList.toggle('is-loading', loading);
+                if (loading) b.classList.remove('is-active');
+            });
+        };
+        const setActive = active => {
+            locateBtns.forEach(b => {
+                b.classList.remove('is-loading');
+                b.classList.toggle('is-active', active);
+            });
+        };
+
+        const toast = msg => {
+            if (window.Notif?.New) {
+                window.Notif.New({ title: 'Location', message: msg, type: 'info', duration: 4000 }).show();
+            } else {
+                alert(msg);
+            }
+        };
+
+        if (!('geolocation' in navigator)) { toast('Geolocation is not supported by this browser.'); return; }
+        if (!window.isSecureContext) { toast('Geolocation requires HTTPS or localhost.'); return; }
+        if (this.me && this.watchId !== null) { this.flyToMe(); return; }
+
+        setLoading(true);
+
+        const onSuccess = pos => {
+            setActive(true);
+            this.updateMe(pos);
+            this.flyToMe();
+            if (typeof this.options.onPointClick === 'function') {
+                this.options.onPointClick({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+            }
+            this.watchId = navigator.geolocation.watchPosition(
+                p => this.updateMe(p),
+                () => { },
+                { enableHighAccuracy: false, maximumAge: 10000 }
+            );
+        };
+
+        const tryLowAccuracy = () => {
+            navigator.geolocation.getCurrentPosition(onSuccess, err => {
+                setLoading(false);
+                toast(err.code === 1
+                    ? 'Location permission denied. Check your browser & Mac system settings.'
+                    : 'Could not detect location. Make sure Wi-Fi is enabled on your Mac.');
+            }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
+        };
+
+        // Try high accuracy first, fallback to standard Wi-Fi/IP triangulation for laptops
+        navigator.geolocation.getCurrentPosition(onSuccess, err => {
+            if (err.code === 1) {
+                setLoading(false);
+                toast('Location permission denied. Check your browser & Mac system settings.');
+            } else {
+                tryLowAccuracy();
+            }
+        }, { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 });
+    }
+
+    updateMe(pos) {
+        this.me = { lng: pos.coords.longitude, lat: pos.coords.latitude, acc: pos.coords.accuracy || 30 };
+        if (!this.map) return;
+        if (!this.meMarker) {
+            const el = document.createElement('div');
+            el.className = 'lg-me';
+            el.innerHTML = '<span class="lg-me-ring"></span><span class="lg-me-dot"></span><span class="lg-me-label">You</span>';
+            this.meMarker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([this.me.lng, this.me.lat]).addTo(this.map);
+        } else {
+            this.meMarker.setLngLat([this.me.lng, this.me.lat]);
+        }
+        this.renderMeAcc();
+        this._updateCoordBar?.(this.me.lat, this.me.lng);
+    }
+
+    renderMeAcc() {
+        if (!this.me || !this.map) return;
+        const circlePolygon = (lng, lat, radiusM, steps = 64) => {
+            const ring = [];
+            const dLat = radiusM / 111320;
+            const dLng = radiusM / (111320 * Math.cos(lat * Math.PI / 180));
+            for (let i = 0; i <= steps; i++) {
+                const t = (i / steps) * 2 * Math.PI;
+                ring.push([lng + dLng * Math.cos(t), lat + dLat * Math.sin(t)]);
+            }
+            return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [ring] }, properties: {} };
+        };
+        const data = circlePolygon(this.me.lng, this.me.lat, Math.min(this.me.acc, 2000));
+        const src = this.map.getSource('lg-me-acc');
+        if (src) {
+            src.setData(data);
+        } else {
+            try {
+                this.map.addSource('lg-me-acc', { type: 'geojson', data });
+                this.map.addLayer({ id: 'lg-me-acc-fill', type: 'fill', source: 'lg-me-acc', paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.14 } });
+                this.map.addLayer({ id: 'lg-me-acc-line', type: 'line', source: 'lg-me-acc', paint: { 'line-color': '#3b82f6', 'line-width': 1.5, 'line-opacity': 0.6 } });
+            } catch (e) { console.warn('[GlobeExplorer] me acc layer', e); }
+        }
+    }
+
+    flyToMe() {
+        if (!this.me || !this.map) return;
+        this.map.flyTo({ center: [this.me.lng, this.me.lat], zoom: 16.2, pitch: 60, bearing: this.map.getBearing() - 20, duration: 4000, curve: 1.5 });
     }
 
     _renderSuggestions(results) {
