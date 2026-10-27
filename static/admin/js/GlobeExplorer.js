@@ -24,6 +24,13 @@ export class GlobeExplorer {
         const style = document.createElement('style');
         style.id = 'globe-explorer-styles';
         style.textContent = `
+            .lg-me-marker-container {
+                display: block;
+                width: 22px;
+                height: 22px;
+                pointer-events: none;
+                z-index: 9999 !important;
+            }
             .lg-me {
                 width: 22px;
                 height: 22px;
@@ -164,6 +171,7 @@ export class GlobeExplorer {
         this.targetMarker = null;
         this.meMarker = null;
         this.me = null;
+        this._hasCenteredAccurate = false;
         this.watchId = null;
         this.lastClickedCoords = null;
         this.currentTheme = this.options.theme;
@@ -1115,7 +1123,12 @@ export class GlobeExplorer {
 
         if (!('geolocation' in navigator)) { toast('Geolocation is not supported by this browser.'); return; }
         if (!window.isSecureContext) { toast('Geolocation requires HTTPS or localhost.'); return; }
-        if (this.me && this.watchId !== null) { this.flyToMe(); return; }
+
+        if (this.me && this.watchId !== null) {
+            setActive(true);
+            this.flyToMe();
+            return;
+        }
 
         setLoading(true);
 
@@ -1126,11 +1139,19 @@ export class GlobeExplorer {
             if (typeof this.options.onPointClick === 'function') {
                 this.options.onPointClick({ lat: pos.coords.latitude, lng: pos.coords.longitude });
             }
-            this.watchId = navigator.geolocation.watchPosition(
-                p => this.updateMe(p),
-                () => { },
-                { enableHighAccuracy: false, maximumAge: 10000 }
-            );
+            if (this.watchId === null) {
+                this.watchId = navigator.geolocation.watchPosition(
+                    p => {
+                        const wasCoarse = this.me && this.me.acc > 250;
+                        this.updateMe(p);
+                        if (wasCoarse && p.coords && p.coords.accuracy <= 250) {
+                            this.flyToMe();
+                        }
+                    },
+                    () => { },
+                    { enableHighAccuracy: false, maximumAge: 10000 }
+                );
+            }
         };
 
         const tryLowAccuracy = () => {
@@ -1154,13 +1175,17 @@ export class GlobeExplorer {
     }
 
     updateMe(pos) {
-        this.me = { lng: pos.coords.longitude, lat: pos.coords.latitude, acc: pos.coords.accuracy || 30 };
+        const coords = pos.coords || pos;
+        this.me = { lng: coords.longitude, lat: coords.latitude, acc: coords.accuracy || 30 };
         if (!this.map) return;
         if (!this.meMarker) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'lg-me-marker-container';
             const el = document.createElement('div');
             el.className = 'lg-me';
             el.innerHTML = '<span class="lg-me-ring"></span><span class="lg-me-dot"></span><span class="lg-me-label">You</span>';
-            this.meMarker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([this.me.lng, this.me.lat]).addTo(this.map);
+            wrapper.appendChild(el);
+            this.meMarker = new maplibregl.Marker({ element: wrapper, anchor: 'center' }).setLngLat([this.me.lng, this.me.lat]).addTo(this.map);
         } else {
             this.meMarker.setLngLat([this.me.lng, this.me.lat]);
         }
@@ -1195,7 +1220,14 @@ export class GlobeExplorer {
 
     flyToMe() {
         if (!this.me || !this.map) return;
-        this.map.flyTo({ center: [this.me.lng, this.me.lat], zoom: 16.2, pitch: 60, bearing: this.map.getBearing() - 20, duration: 4000, curve: 1.5 });
+        this.map.flyTo({
+            center: [this.me.lng, this.me.lat],
+            zoom: 15.5,
+            pitch: this.tilt3d ? 35 : 0,
+            bearing: 0,
+            duration: 1800,
+            essential: true
+        });
     }
 
     _renderSuggestions(results) {
