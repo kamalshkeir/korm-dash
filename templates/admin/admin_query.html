@@ -1,0 +1,166 @@
+{{template "admin_base" .}}
+
+{{define "admin_title"}}SQL Studio{{end}}
+
+{{define "admin_css"}}
+<link rel="stylesheet" href="{{$.static_url}}/admin/css/pages/query.css">
+{{end}}
+
+{{define "admin_main_content"}}
+<div class="app-layout">
+    <nav-bar id="mainNav"></nav-bar>
+    <main class="main-content">
+        <app-header titre="SQL Studio" username="{{.User.Username}}" email="{{.User.Email}}"
+            logout="{{$.admin_path}}/logout" restart="{{$.admin_path}}/restart"></app-header>
+        <div class="content-area">
+
+            <div class="page-head query-page-head">
+                <div>
+                    <h2>SQL Query Studio</h2>
+                    <p>Run raw queries and generate type-safe <code>korm.Select[T]()</code> Go code in real time.</p>
+                </div>
+                <div class="query-top-actions">
+                    <div class="query-ctrl-group">
+                        <label for="queryDb">Database</label>
+                        <select id="queryDb" class="query-select">
+                            {{range .databases}}
+                            <option value="{{.}}" {{if eq . $.defaultDB}}selected{{end}}>{{.}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div class="query-ctrl-group">
+                        <label for="queryLimit">Max rows</label>
+                        <select id="queryLimit" class="query-select">
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                            <option value="0">All</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="btnRunQuery" title="Execute Query (Cmd+Enter / Ctrl+Enter)">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        <span>Run</span>
+                        <kbd class="kbd-shortcut">⌘↵</kbd>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Editor Section -->
+            <section class="card query-editor-card spotlight-card">
+                <div class="editor-header">
+                    <div class="editor-chips">
+                        <span class="chips-label">Quick Snippets:</span>
+                        <button type="button" class="snippet-chip" data-sql="SELECT * FROM users LIMIT 10;">SELECT users</button>
+                        <button type="button" class="snippet-chip" data-sql="SELECT name, type FROM sqlite_master WHERE type='table';">List tables</button>
+                        <button type="button" class="snippet-chip" data-sql="SELECT COUNT(*) as total_users FROM users;">Count users</button>
+                    </div>
+                    <div class="editor-tools">
+                        <button type="button" class="btn-save-query" id="btnSaveSnippet" title="Save current query as a favorite snippet">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                            <span>Save</span>
+                        </button>
+                        <label class="explain-toggle" title="Prefix query with EXPLAIN to inspect execution plan">
+                            <input type="checkbox" id="chkExplain">
+                            <span>Explain Plan</span>
+                        </label>
+                        <button type="button" class="btn-ghost" id="btnClearQuery" title="Clear Editor">Clear</button>
+                    </div>
+                </div>
+
+                <div class="saved-queries-bar" id="savedQueriesBar" style="display: none;">
+                    <span class="chips-label">⭐ Favorites:</span>
+                    <div class="saved-chips-list" id="savedChipsList"></div>
+                </div>
+
+                <!-- Dual View Navigation & korm.Select Controls -->
+                <div class="editor-view-tabs">
+                    <div class="view-tabs-left">
+                        <button type="button" class="view-tab active" data-view="sql" id="tabSql">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                            <span>SQL Editor</span>
+                        </button>
+                        <button type="button" class="view-tab" data-view="go" id="tabGo">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            <span>Go Selector (<code>korm.Select[T]</code>)</span>
+                        </button>
+                        <button type="button" class="view-tab" data-view="split" id="tabSplit">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+                            <span>Split View</span>
+                        </button>
+                    </div>
+                    <div class="view-tabs-right">
+                        <button type="button" class="btn-copy-code" id="btnCopyGoCode" title="Copy Go Code to Clipboard">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            <span id="copyCodeText">Copy Go Code</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dual View Editor Body -->
+                <div class="editor-workspace view-sql-mode" id="editorWorkspace">
+                    <div class="workspace-pane pane-sql" id="paneSql">
+                        <div class="pane-header">
+                            <span>SQL Statement</span>
+                        </div>
+                        <div class="editor-wrapper">
+                            <textarea id="queryInput" class="query-textarea" placeholder="SELECT * FROM users WHERE is_admin = 1..."
+                                spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="workspace-pane pane-go" id="paneGo">
+                        <div class="pane-header">
+                            <span>Go Implementation (korm.Select[T])</span>
+                            <span class="pane-badge">Type-Safe</span>
+                        </div>
+                        <div class="go-code-wrapper">
+                            <pre class="go-code-pre"><code id="goCodeOutput" class="language-go">// Loading selector code...</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="editor-footer">
+                    <div class="editor-meta">
+                        <span><kbd>Tab</kbd> indent</span>
+                        <span><kbd>⌘</kbd> + <kbd>↵</kbd> execute</span>
+                        <span>Auto-sync with <code>selector.go</code></span>
+                    </div>
+                    <div class="history-pills" id="historyPills"></div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="card query-results-card" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <div class="results-stats">
+                        <span class="badge" id="resStatusBadge">Ready</span>
+                        <span class="res-meta-item" id="resDuration">⚡ 0 ms</span>
+                        <span class="res-meta-item" id="resCount">0 rows</span>
+                    </div>
+                    <div class="results-actions">
+                        <button type="button" class="btn btn-sm" id="btnExportJSON" title="Export results as JSON">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            JSON
+                        </button>
+                        <button type="button" class="btn btn-sm" id="btnExportCSV" title="Export results as CSV">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="results-body" id="resultsBody">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+{{end}}
+
+{{define "admin_js"}}
+<script src="{{$.static_url}}/admin/js/query.js" type="module"></script>
+{{end}}

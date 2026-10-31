@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const loadTableData = () => {
-        fetch(adminPath + "/tables/all/" + tableName, {
+        return fetch(adminPath + "/tables/all/" + tableName, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ "page": page })
@@ -235,21 +235,39 @@ document.addEventListener("DOMContentLoaded", () => {
                 serverData = data.success;
                 table.tableData = serverData;
                 renderPagination(serverData.total);
+                const liveCount = document.getElementById("liveRowCount");
+                if (liveCount && serverData.total !== undefined) {
+                    liveCount.textContent = serverData.total;
+                }
             }
+            return data;
         });
     }
-    let nmenabled = document.getElementById("nmenabled");
-    if (nmenabled && nmenabled.dataset.value == "true") {
-        BusClient.Client.NewClient({
-            Id: "korm_db_dashboard_hooks-client_js",
-            Secure: window.location.protocol == 'http:' ? false : true
+
+    // Live real-time sync with KORM hooks & ServerBus
+    if (typeof window !== 'undefined' && window.BusClient && window.BusClient.Client) {
+        window.BusClient.Client.NewClient({
+            Id: `korm_table_${tableName}_${Date.now()}`,
+            Secure: window.location.protocol === 'https:',
+            AutoRestart: true
         }).then(client => {
-            console.log("yesss connected ws", client)
-            client.Subscribe("korm_db_dashboard_hooks", () => {
-                setTimeout(() => {
-                    loadTableData()
-                }, 200)
-            });
+            const handleHook = (msg) => {
+                const event = (msg && msg.data) ? msg.data : msg;
+                if (!event || (event.table && event.table !== tableName)) return;
+
+                loadTableData().then(() => {
+                    const pkField = serverData?.pk || document.body.dataset.pk || 'id';
+                    const pkVal = event.data?.[pkField] || event.new?.[pkField] || event.old?.[pkField] || event.pk;
+                    if (pkVal !== undefined && pkVal !== null && table.flashRow) {
+                        table.flashRow(pkVal, event.operation || 'update');
+                    }
+                });
+            };
+
+            client.Subscribe("korm_db_dashboard_hooks", handleHook);
+            client.Subscribe(`korm:table:${tableName}`, handleHook);
+        }).catch(err => {
+            console.debug('[korm live] ws bus sync:', err);
         });
     }
 
@@ -294,6 +312,86 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.removeChild(input);
         });
     });
+
+    // Seed Mock Data Modal logic
+    const seedBtn = document.getElementById('btnSeedData');
+    const seedModal = document.getElementById('seedModal');
+    const closeSeedModal = document.getElementById('closeSeedModal');
+    const cancelSeedModal = document.getElementById('cancelSeedModal');
+    const confirmSeedBtn = document.getElementById('confirmSeedBtn');
+    const seedSpinner = document.getElementById('seedSpinner');
+    let seedCount = 10;
+
+    if (seedBtn && seedModal) {
+        seedBtn.addEventListener('click', () => {
+            seedModal.showModal();
+        });
+
+        const closeModal = () => {
+            seedModal.close();
+        };
+
+        closeSeedModal?.addEventListener('click', closeModal);
+        cancelSeedModal?.addEventListener('click', closeModal);
+
+        seedModal.addEventListener('click', (e) => {
+            if (e.target === seedModal) closeModal();
+        });
+
+        seedModal.querySelectorAll('.seed-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                seedModal.querySelectorAll('.seed-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                seedCount = parseInt(pill.dataset.count, 10) || 10;
+            });
+        });
+
+        confirmSeedBtn?.addEventListener('click', async () => {
+            confirmSeedBtn.disabled = true;
+            if (seedSpinner) seedSpinner.style.display = 'inline-block';
+
+            try {
+                const res = await fetch(`${adminPath}/tables/${tableName}/seed`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ count: seedCount })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (window.Notif && window.Notif.New) {
+                        window.Notif.New({
+                            title: 'Data Seeded!',
+                            message: `Successfully generated and inserted ${data.inserted} mock row${data.inserted > 1 ? 's' : ''}`,
+                            type: 'success'
+                        }).show();
+                    }
+                    closeModal();
+
+                    page = 1;
+                    loadTableData();
+                } else {
+                    if (window.Notif && window.Notif.New) {
+                        window.Notif.New({
+                            title: 'Error',
+                            message: data.error || 'Unable to seed rows',
+                            type: 'error'
+                        }).show();
+                    }
+                }
+            } catch (err) {
+                if (window.Notif && window.Notif.New) {
+                    window.Notif.New({
+                        title: 'Network Error',
+                        message: err.message,
+                        type: 'error'
+                    }).show();
+                }
+            } finally {
+                confirmSeedBtn.disabled = false;
+                if (seedSpinner) seedSpinner.style.display = 'none';
+            }
+        });
+    }
 
     search.addEventListener("submit", (e) => {
         e.preventDefault();

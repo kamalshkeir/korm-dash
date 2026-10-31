@@ -62,6 +62,7 @@
                             <span class="metric-value" data-metric="stack-memory">{{printf "%.2f" .metrics.StackMemoryMB}} MB</span>
                         </div>
                     </div>
+                    <div class="metric-sparkline-wrap" id="chart-heap-memory"></div>
                 </div>
                 
                 <div class="metric-card gc">
@@ -83,6 +84,7 @@
                             <span class="metric-value" data-metric="gc-cpu">{{printf "%.2f" .metrics.GCCPUPercent}}%</span>
                         </div>
                     </div>
+                    <div class="metric-sparkline-wrap" id="chart-gc-cpu"></div>
                 </div>
                 
                 <div class="metric-card runtime">
@@ -104,6 +106,7 @@
                             <span class="metric-value" data-metric="go-version">{{.metrics.GoVersion}}</span>
                         </div>
                     </div>
+                    <div class="metric-sparkline-wrap" id="chart-goroutines"></div>
                 </div>
             </div>
 

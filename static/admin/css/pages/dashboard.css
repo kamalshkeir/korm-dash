@@ -288,6 +288,50 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Mode Switcher (Circles vs ERD Cards) */
+.sg-view-switch {
+    display: inline-flex;
+    align-items: center;
+    background: color-mix(in srgb, var(--bg-surface-2, #181d29) 90%, transparent);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm, 8px);
+    padding: 2px;
+    margin-right: 4px;
+}
+
+.sg-switch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    height: 26px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s ease;
+}
+
+.sg-switch-btn svg {
+    flex-shrink: 0;
+}
+
+.sg-switch-btn:hover {
+    color: var(--text-primary);
+}
+
+.sg-switch-btn.active {
+    background: color-mix(in srgb, var(--theme-color) 20%, #1e2433);
+    color: #fff;
+    border-color: color-mix(in srgb, var(--theme-color) 45%, transparent);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 .sg-tool-btn {
@@ -436,7 +480,7 @@
     opacity: 0.22;
 }
 
-.sg-node text {
+.sg-node:not(.is-card) text {
     font-family: var(--font-mono);
     font-size: 11.5px;
     font-weight: 700;
@@ -447,7 +491,7 @@
     user-select: none;
 }
 
-.sg-node .count {
+.sg-node:not(.is-card) .count {
     font-size: 9.5px;
     font-weight: 600;
     fill: #9aa2bc;
@@ -493,6 +537,165 @@
     width: 18px;
     height: 0;
     border-top: 2px solid var(--border-strong);
+}
+
+.legend-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    padding: 1px 4px;
+    border-radius: 3px;
+    margin-right: 2px;
+    line-height: 1.2;
+}
+
+.legend-badge.pk {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.45);
+}
+
+.legend-badge.fk {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.45);
+}
+
+/* ---------- ERD Card Nodes (SVG Mode) ---------- */
+.sg-node.is-card {
+    cursor: grab;
+}
+
+.sg-node.is-card.is-dragging {
+    cursor: grabbing !important;
+}
+
+.sg-node.is-card .sg-card-rect {
+    fill: #0f1422;
+    stroke: rgba(255, 255, 255, 0.15);
+    stroke-width: 1.5;
+    transition: stroke 200ms ease, fill 200ms ease, filter 200ms ease;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
+}
+
+.sg-node.is-card.system .sg-card-rect {
+    stroke: color-mix(in srgb, var(--theme-color) 60%, rgba(255, 255, 255, 0.15));
+}
+
+.sg-node.is-card:hover .sg-card-rect,
+.sg-node.is-card.active .sg-card-rect {
+    stroke: var(--theme-color);
+    stroke-width: 2.2;
+    fill: #131929;
+    filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 16px color-mix(in srgb, var(--theme-color) 45%, transparent));
+}
+
+.sg-card-head-bg {
+    fill: #181f30;
+    transition: fill 200ms ease;
+}
+
+.sg-node.is-card.system .sg-card-head-bg {
+    fill: color-mix(in srgb, var(--theme-color) 18%, #181f30);
+}
+
+.sg-node.is-card:hover .sg-card-head-bg,
+.sg-node.is-card.active .sg-card-head-bg {
+    fill: color-mix(in srgb, var(--theme-color) 24%, #181f30);
+}
+
+.sg-card-divider {
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 1;
+}
+
+.sg-node.is-card text {
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    pointer-events: none;
+    user-select: none;
+}
+
+.sg-node.is-card .sg-card-head-title {
+    font-size: 12px;
+    font-weight: 700;
+    fill: #f8fafc;
+    text-anchor: start !important;
+    dominant-baseline: central !important;
+}
+
+.sg-node.is-card .sg-card-head-count {
+    font-size: 10px;
+    font-weight: 600;
+    fill: #94a3b8;
+    text-anchor: end !important;
+    dominant-baseline: central !important;
+}
+
+.sg-card-col-row {
+    pointer-events: none;
+}
+
+.sg-node.is-card .sg-card-col-name {
+    font-size: 11px;
+    font-weight: 500;
+    fill: #cbd5e1;
+    text-anchor: start !important;
+    dominant-baseline: central !important;
+}
+
+.sg-node.is-card .sg-card-col-name.is-pk {
+    font-weight: 700;
+    fill: #fbbf24;
+}
+
+.sg-node.is-card .sg-card-col-name.is-fk {
+    font-weight: 600;
+    fill: #93c5fd;
+}
+
+.sg-node.is-card .sg-card-col-type {
+    font-size: 9.5px;
+    font-weight: 500;
+    fill: #64748b;
+    text-anchor: end !important;
+    dominant-baseline: central !important;
+}
+
+.sg-card-badge-pk {
+    fill: rgba(245, 158, 11, 0.2);
+    stroke: rgba(245, 158, 11, 0.55);
+    stroke-width: 0.8;
+}
+
+.sg-node.is-card .sg-card-badge-pk-text {
+    font-size: 8px;
+    font-weight: 800;
+    fill: #fbbf24;
+    text-anchor: middle !important;
+    dominant-baseline: central !important;
+}
+
+.sg-card-badge-fk {
+    fill: rgba(59, 130, 246, 0.2);
+    stroke: rgba(59, 130, 246, 0.55);
+    stroke-width: 0.8;
+}
+
+.sg-node.is-card .sg-card-badge-fk-text {
+    font-size: 8px;
+    font-weight: 800;
+    fill: #60a5fa;
+    text-anchor: middle !important;
+    dominant-baseline: central !important;
+}
+
+.sg-node.is-card .sg-card-more {
+    font-size: 9.5px;
+    font-style: italic;
+    fill: #64748b;
+    text-anchor: start !important;
+    dominant-baseline: central !important;
 }
 
 .schema-meta {
@@ -607,5 +810,93 @@
 
     .hero h2 {
         font-size: 1.4rem;
+    }
+
+    .hero-actions {
+        width: 100%;
+    }
+
+    .hero-actions .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .schema-card {
+        min-height: 480px;
+        padding: 16px;
+    }
+
+    .schema-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .schema-header .section-title {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .schema-header .section-hint {
+        width: 100%;
+        font-size: 11.5px;
+        line-height: 1.4;
+    }
+
+    .schema-toolbar {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 6px;
+    }
+
+    /* Hide text labels on tool buttons to keep them compact icon buttons */
+    .sg-tool-btn {
+        padding: 6px 10px;
+    }
+
+    .sg-tool-btn .sg-btn-label {
+        display: none;
+    }
+
+    .schema-graph {
+        min-height: 420px;
+        height: 440px;
+    }
+
+    .schema-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .schema-legend {
+        width: 100%;
+        gap: 12px;
+        font-size: 11px;
+    }
+
+    .schema-meta {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .sg-view-switch {
+        margin-right: 2px;
+    }
+
+    .sg-switch-btn {
+        padding: 4px 6px;
+        font-size: 10.5px;
+        gap: 4px;
+    }
+
+    .sg-tool-btn {
+        padding: 5px 8px;
+        height: 28px;
     }
 }

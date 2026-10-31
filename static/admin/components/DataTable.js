@@ -33,6 +33,19 @@ class DataTable extends HTMLElement {
         this.render();
     }
 
+    flashRow(pk, type = 'update') {
+        if (pk === undefined || pk === null) return;
+        const tr = this.shadowRoot.querySelector(`tr[data-pk="${pk}"]`);
+        if (tr) {
+            tr.classList.remove('row-flash-insert', 'row-flash-update');
+            void tr.offsetWidth;
+            tr.classList.add(type === 'insert' ? 'row-flash-insert' : 'row-flash-update');
+            setTimeout(() => {
+                tr.classList.remove('row-flash-insert', 'row-flash-update');
+            }, 1900);
+        }
+    }
+
     #getColumnType(colName, goType, dbType) {
         if (this.constructor.TIMESTAMP_KEYWORDS.some(k => goType?.includes(k) && !goType?.includes('map'))) {
             return 'timestamp';
@@ -124,6 +137,24 @@ class DataTable extends HTMLElement {
 
                 .data-table tbody tr.is-selected {
                     background: color-mix(in srgb, var(--dt-accent) 10%, transparent);
+                }
+
+                .data-table tbody tr.row-flash-insert {
+                    animation: row-flash-insert-anim 1.8s ease-out;
+                }
+
+                .data-table tbody tr.row-flash-update {
+                    animation: row-flash-update-anim 1.8s ease-out;
+                }
+
+                @keyframes row-flash-insert-anim {
+                    0% { background: color-mix(in srgb, #10b981 38%, transparent); }
+                    100% { background: transparent; }
+                }
+
+                @keyframes row-flash-update-anim {
+                    0% { background: color-mix(in srgb, var(--dt-accent) 38%, transparent); }
+                    100% { background: transparent; }
                 }
 
                 /* ---------- checkbox cell ---------- */

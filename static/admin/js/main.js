@@ -10,6 +10,7 @@ const ICONS = {
     kanban: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M9 3v18M15 3v18"/></svg>`,
     terminal: `<svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>`,
     traces: `<svg viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>`,
+    query: `<svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="m14 14 3-3 3 3"/><path d="M17 11v6"/></svg>`,
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -41,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
             label: 'Tables',
             icon: ICONS.tables,
             exact: false
+        },
+        {
+            href: `${admdmdPartth}/query`,
+            label: 'SQL Studio',
+            icon: ICONS.query,
+            exact: true
         },
         {
             href: `${admdmdPartth}/logs`,
@@ -93,7 +100,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---------------- command palette ----------------
     initCommandPalette(navLinks);
+
+    // ---------------- spotlight card effect ----------------
+    initSpotlight();
 });
+
+function initSpotlight() {
+    const selector = '.card, .stats-card, .metric-card, .schema-card, .hero, .spotlight-card, .dash-table';
+    let currentCard = null;
+
+    document.addEventListener('mousemove', (e) => {
+        const card = e.target.closest(selector);
+        if (card !== currentCard) {
+            currentCard = card;
+        }
+        if (!currentCard) return;
+        const rect = currentCard.getBoundingClientRect();
+        currentCard.style.setProperty('--mouse-x', `${(e.clientX - rect.left).toFixed(1)}px`);
+        currentCard.style.setProperty('--mouse-y', `${(e.clientY - rect.top).toFixed(1)}px`);
+    }, { passive: true });
+}
 
 function adjustBrightness(color, percent) {
     const num = parseInt(color.replace('#', ''), 16);

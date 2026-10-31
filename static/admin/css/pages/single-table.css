@@ -45,6 +45,43 @@
     color: var(--text-primary);
 }
 
+.badge-live {
+    background: color-mix(in srgb, var(--success, #10b981) 14%, transparent);
+    color: var(--success, #10b981);
+    border: 1px solid color-mix(in srgb, var(--success, #10b981) 28%, transparent);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: var(--radius-full);
+}
+
+.pulse-live {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success, #10b981);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success, #10b981) 60%, transparent);
+    animation: live-pulse-ring 2s infinite;
+}
+
+@keyframes live-pulse-ring {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--success, #10b981) 70%, transparent);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px transparent;
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
 /* ---------- related tables bar ---------- */
 .related-bar {
     display: flex;
@@ -670,4 +707,148 @@ textarea.editor {
         width: 100%;
         text-align: center;
     }
+}
+
+/* ---------- Seed Mock Data Modal & Button ---------- */
+.seed-btn {
+    background: color-mix(in srgb, #10b981 12%, var(--bg-surface-2, #181d29));
+    border-color: color-mix(in srgb, #10b981 35%, transparent);
+    color: #10b981;
+    font-weight: 600;
+}
+
+.seed-btn:hover {
+    background: color-mix(in srgb, #10b981 22%, var(--bg-surface-2, #181d29));
+    border-color: #10b981;
+    color: #34d399;
+}
+
+.seed-modal {
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-lg, 16px);
+    background: transparent;
+    max-width: min(92vw, 480px);
+    width: 100%;
+    outline: none;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+.seed-modal::backdrop {
+    background: rgba(10, 14, 23, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.seed-modal-card {
+    background: var(--bg-surface, #141926);
+    border: 1px solid var(--border-default, rgba(255, 255, 255, 0.12));
+    border-radius: var(--radius-lg, 16px);
+    overflow: hidden;
+    color: var(--text-primary, #fff);
+}
+
+.seed-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--bg-surface-2, #181e2e);
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.seed-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.seed-modal-title h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.seed-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.seed-modal-close:hover {
+    color: var(--text-primary);
+}
+
+.seed-modal-body {
+    padding: 20px;
+}
+
+.seed-modal-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+
+.seed-modal-desc strong {
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}
+
+.seed-field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.seed-pill-group {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.seed-pill {
+    padding: 8px 12px;
+    border-radius: var(--radius-sm, 8px);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+    background: var(--bg-surface-2, #181d29);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    user-select: none;
+    transition: all 0.15s ease;
+}
+
+.seed-pill:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    background: var(--bg-surface-3, #22293a);
+}
+
+.seed-pill.active {
+    background: color-mix(in srgb, #10b981 18%, #181d29);
+    border-color: #10b981;
+    color: #34d399;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+
+.seed-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    background: var(--bg-surface-2, #181e2e);
+    border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
 }

@@ -30,13 +30,17 @@
                         {{$.table}}
                     </h2>
                     <p class="table-sub">
-                        <span><strong>{{.rowCount}}</strong> rows</span>
+                        <span><strong id="liveRowCount">{{.rowCount}}</strong> rows</span>
                         <span class="stat-sep"></span>
                         <span><strong>{{len .columnsOrdered}}</strong> columns</span>
                         <span class="stat-sep"></span>
                         <span>pk <strong>{{.pk}}</strong></span>
                         <span class="stat-sep"></span>
                         <span class="badge badge-accent">{{.dbType}}</span>
+                        <span class="stat-sep"></span>
+                        <span class="badge badge-live" id="liveSyncBadge" title="Live real-time sync active">
+                            <span class="pulse-live"></span> Live
+                        </span>
                     </p>
                 </div>
                 <div class="page-head-actions">
@@ -47,6 +51,12 @@
                     <button class="btn import-btn">
                         <svg viewBox="0 0 24 24"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg>
                         Import
+                    </button>
+                    <button class="btn seed-btn" id="btnSeedData" type="button" title="Generate mock/seed data rows">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                        </svg>
+                        Seed
                     </button>
                     <button class="btn btn-primary new-record">
                         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
@@ -131,6 +141,40 @@
         <div class="panel-content"></div>
     </div>
 </div>
+
+<!-- Seed Modal -->
+<dialog id="seedModal" class="seed-modal">
+    <div class="seed-modal-card">
+        <div class="seed-modal-header">
+            <div class="seed-modal-title">
+                <span class="seed-icon">🌱</span>
+                <h3>Seed Mock Data</h3>
+            </div>
+            <button class="seed-modal-close" id="closeSeedModal" type="button">&times;</button>
+        </div>
+        <div class="seed-modal-body">
+            <p class="seed-modal-desc">
+                Generate realistic test rows for <strong>{{$.table}}</strong> matching its column types, constraints, and relations.
+            </p>
+            <div class="seed-field">
+                <label class="seed-field-label">How many rows?</label>
+                <div class="seed-pill-group">
+                    <button type="button" class="seed-pill" data-count="5">5 rows</button>
+                    <button type="button" class="seed-pill active" data-count="10">10 rows</button>
+                    <button type="button" class="seed-pill" data-count="25">25 rows</button>
+                    <button type="button" class="seed-pill" data-count="50">50 rows</button>
+                </div>
+            </div>
+        </div>
+        <div class="seed-modal-footer">
+            <button type="button" class="btn" id="cancelSeedModal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="confirmSeedBtn">
+                <span id="seedSpinner" style="display:none;">⏳ </span>
+                Generate & Insert
+            </button>
+        </div>
+    </div>
+</dialog>
 
 {{end}}
 
