@@ -58,6 +58,12 @@
                         </svg>
                         Seed
                     </button>
+                    <button class="btn audit-btn" id="btnOpenAudit" type="button" title="Time-Travel Audit Log & Diff Inspector">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        Time-Travel
+                    </button>
                     <button class="btn btn-primary new-record">
                         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
                         New record
@@ -172,6 +178,43 @@
                 <span id="seedSpinner" style="display:none;">⏳ </span>
                 Generate & Insert
             </button>
+        </div>
+    </div>
+</dialog>
+
+<!-- Time-Travel Audit Drawer Dialog -->
+<dialog id="auditModal" class="audit-modal">
+    <div class="audit-modal-card">
+        <div class="audit-modal-header">
+            <div class="audit-modal-title">
+                <span class="audit-icon">🕒</span>
+                <div>
+                    <h3>Time-Travel Audit & Diff Inspector</h3>
+                    <p class="audit-modal-sub">Historical timeline of mutations for <strong>{{$.table}}</strong> with 1-click rollback.</p>
+                </div>
+            </div>
+            <button class="seed-modal-close" id="closeAuditModal" type="button">&times;</button>
+        </div>
+
+        <div class="audit-toolbar">
+            <div class="audit-search-wrap">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="auditRecordFilter" class="audit-search-input" placeholder="Filter by Record ID (e.g. 1) or leave empty for all...">
+            </div>
+            <button type="button" class="btn btn-sm" id="btnRefreshAudit">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <span>Refresh</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-ghost" id="btnPruneAudit" title="Purge audit logs older than 30 days">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Purge &gt; 30d</span>
+            </button>
+        </div>
+
+        <div class="audit-timeline-body" id="auditTimelineContainer">
+            <div class="audit-empty-state">
+                Loading mutation history…
+            </div>
         </div>
     </div>
 </dialog>

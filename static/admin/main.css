@@ -873,12 +873,12 @@ app-header {
     box-shadow: var(--shadow-xs);
 }
 
-input:checked+.slider {
+input:checked + .slider {
     background-color: var(--theme-color);
     border-color: transparent;
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
     transform: translateX(17px);
 }
 
@@ -938,9 +938,11 @@ input:checked+.slider:before {
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(460px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
-            color-mix(in srgb, var(--theme-color) 16%, rgba(255, 255, 255, 0.08)),
-            transparent 70%);
+    background: radial-gradient(
+        460px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+        color-mix(in srgb, var(--theme-color) 16%, rgba(255, 255, 255, 0.08)),
+        transparent 70%
+    );
     opacity: 0;
     transition: opacity var(--dur-base) var(--ease-out);
     pointer-events: none;
@@ -956,12 +958,12 @@ input:checked+.slider:before {
     opacity: 1;
 }
 
-.card>*,
-.stats-card>*,
-.metric-card>*,
-.schema-card>*,
-.hero>*,
-.spotlight-card>* {
+.card > *,
+.stats-card > *,
+.metric-card > *,
+.schema-card > *,
+.hero > *,
+.spotlight-card > * {
     position: relative;
     z-index: 1;
 }
@@ -1600,7 +1602,6 @@ input:checked+.slider:before {
         opacity: 0;
         transform: translateY(10px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1611,7 +1612,6 @@ input:checked+.slider:before {
     from {
         opacity: 0;
     }
-
     to {
         opacity: 1;
     }
@@ -1622,7 +1622,6 @@ input:checked+.slider:before {
         opacity: 0;
         transform: translateY(-6px) scale(0.97);
     }
-
     to {
         opacity: 1;
         transform: translateY(0) scale(1);

@@ -852,3 +852,329 @@ textarea.editor {
     background: var(--bg-surface-2, #181e2e);
     border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
 }
+
+
+/* ============================================================
+   Time-Travel Audit & Diff Inspector Styles
+   ============================================================ */
+
+.audit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-color: color-mix(in srgb, #06b6d4 35%, transparent) !important;
+    color: #22d3ee !important;
+    background: color-mix(in srgb, #06b6d4 10%, transparent) !important;
+    transition: all var(--dur-fast) var(--ease-out);
+}
+
+.audit-btn:hover {
+    background: color-mix(in srgb, #06b6d4 20%, transparent) !important;
+    border-color: #06b6d4 !important;
+    color: #67e8f9 !important;
+    transform: translateY(-1px);
+}
+
+.audit-modal {
+    border: none;
+    background: transparent;
+    padding: 0;
+    max-width: 820px;
+    width: 95vw;
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 0 1px var(--border-default);
+    margin: auto;
+    overflow: hidden;
+}
+
+.audit-modal::backdrop {
+    background: rgba(4, 7, 15, 0.75);
+    backdrop-filter: blur(8px);
+}
+
+.audit-modal-card {
+    background: var(--bg-surface, #0f1422);
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    border-radius: inherit;
+    overflow: hidden;
+}
+
+.audit-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 18px 22px;
+    background: var(--bg-surface-2, #181d29);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.audit-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.audit-icon {
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: color-mix(in srgb, #06b6d4 15%, transparent);
+    border: 1px solid color-mix(in srgb, #06b6d4 30%, transparent);
+}
+
+.audit-modal-title h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.audit-modal-sub {
+    margin: 3px 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.audit-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 22px;
+    background: var(--bg-surface-3, #151a27);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.audit-search-wrap {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.audit-search-wrap svg {
+    position: absolute;
+    left: 10px;
+    color: var(--text-muted);
+}
+
+.audit-search-input {
+    width: 100%;
+    padding: 6px 10px 6px 32px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 12.5px;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.audit-search-input:focus {
+    border-color: #06b6d4;
+    box-shadow: 0 0 0 2px color-mix(in srgb, #06b6d4 20%, transparent);
+}
+
+.audit-timeline-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 250px;
+}
+
+.audit-empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* Timeline Cards */
+.timeline-card {
+    position: relative;
+    background: var(--bg-surface-2, #181d29);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md, 10px);
+    padding: 14px 18px;
+    transition: all 0.2s ease;
+}
+
+.timeline-card:hover {
+    border-color: var(--border-default);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}
+
+.timeline-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.timeline-meta-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.audit-badge-insert {
+    background: color-mix(in srgb, #10b981 18%, transparent);
+    color: #34d399;
+    border: 1px solid color-mix(in srgb, #10b981 35%, transparent);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.audit-badge-update {
+    background: color-mix(in srgb, #f59e0b 18%, transparent);
+    color: #fbbf24;
+    border: 1px solid color-mix(in srgb, #f59e0b 35%, transparent);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.audit-badge-delete {
+    background: color-mix(in srgb, #ef4444 18%, transparent);
+    color: #f87171;
+    border: 1px solid color-mix(in srgb, #ef4444 35%, transparent);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.audit-badge-rollback {
+    background: color-mix(in srgb, #8b5cf6 18%, transparent);
+    color: #c084fc;
+    border: 1px solid color-mix(in srgb, #8b5cf6 35%, transparent);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.audit-row-pill {
+    background: var(--bg-surface-3);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.audit-author {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.audit-timestamp {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.btn-rollback {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: var(--radius-xs, 4px);
+    background: color-mix(in srgb, #8b5cf6 15%, transparent);
+    border: 1px solid color-mix(in srgb, #8b5cf6 35%, transparent);
+    color: #c084fc;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-rollback:hover {
+    background: #8b5cf6;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Git-like Diff Table */
+.audit-diff-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    background: #0d1117;
+}
+
+.audit-diff-table tr:not(:last-child) td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.audit-diff-col-name {
+    padding: 6px 12px;
+    color: var(--text-muted);
+    font-weight: 700;
+    width: 140px;
+    vertical-align: top;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.audit-diff-vals {
+    padding: 6px 12px;
+    line-height: 1.5;
+}
+
+.diff-del {
+    display: block;
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.12);
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-bottom: 2px;
+    word-break: break-all;
+}
+
+.diff-del::before {
+    content: '- ';
+    opacity: 0.7;
+}
+
+.diff-ins {
+    display: block;
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.12);
+    padding: 1px 6px;
+    border-radius: 3px;
+    word-break: break-all;
+}
+
+.diff-ins::before {
+    content: '+ ';
+    opacity: 0.7;
+}

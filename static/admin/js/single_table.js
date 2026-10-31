@@ -393,6 +393,180 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Time-Travel Audit Modal logic
+    const btnOpenAudit = document.getElementById('btnOpenAudit');
+    const auditModal = document.getElementById('auditModal');
+    const closeAuditModal = document.getElementById('closeAuditModal');
+    const btnRefreshAudit = document.getElementById('btnRefreshAudit');
+    const auditRecordFilter = document.getElementById('auditRecordFilter');
+    const auditTimelineContainer = document.getElementById('auditTimelineContainer');
+    let auditFilterTimeout = null;
+
+    if (btnOpenAudit && auditModal) {
+        btnOpenAudit.addEventListener('click', () => {
+            auditModal.showModal();
+            loadAuditTimeline();
+        });
+
+        const closeAudit = () => {
+            auditModal.close();
+        };
+
+        closeAuditModal?.addEventListener('click', closeAudit);
+        auditModal.addEventListener('click', (e) => {
+            if (e.target === auditModal) closeAudit();
+        });
+
+        btnRefreshAudit?.addEventListener('click', () => {
+            loadAuditTimeline(auditRecordFilter?.value.trim() || '');
+        });
+
+        const btnPruneAudit = document.getElementById('btnPruneAudit');
+        btnPruneAudit?.addEventListener('click', async () => {
+            const ok = confirm(`Purge audit history older than 30 days for table "${tableName}"?`);
+            if (!ok) return;
+
+            try {
+                const res = await fetch(`${adminPath}/audit/prune`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ table: tableName, days: 30 })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (window.Notif && window.Notif.New) {
+                        window.Notif.New({
+                            title: 'Audit Purged',
+                            message: `Cleaned ${data.deleted} old audit records`,
+                            type: 'info'
+                        }).show();
+                    }
+                    loadAuditTimeline(auditRecordFilter?.value.trim() || '');
+                } else {
+                    alert(data.error || 'Failed to prune audit logs');
+                }
+            } catch (err) {
+                alert('Purge error: ' + err.message);
+            }
+        });
+
+        auditRecordFilter?.addEventListener('input', () => {
+            clearTimeout(auditFilterTimeout);
+            auditFilterTimeout = setTimeout(() => {
+                loadAuditTimeline(auditRecordFilter.value.trim());
+            }, 300);
+        });
+    }
+
+    async function loadAuditTimeline(recordId = '') {
+        if (!auditTimelineContainer) return;
+        auditTimelineContainer.innerHTML = '<div class="audit-empty-state">Loading timeline history…</div>';
+
+        try {
+            const url = `${adminPath}/audit/${tableName}${recordId ? `?record_id=${encodeURIComponent(recordId)}` : ''}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (!data.success || !data.items || data.items.length === 0) {
+                auditTimelineContainer.innerHTML = `
+                    <div class="audit-empty-state">
+                        ${recordId ? `No mutations recorded for row #${escapeHtml(recordId)}` : 'No mutation history recorded for this table yet.'}
+                    </div>`;
+                return;
+            }
+
+            renderTimelineItems(data.items);
+        } catch (err) {
+            auditTimelineContainer.innerHTML = `
+                <div class="audit-empty-state" style="color: var(--danger);">
+                    Failed to load timeline: ${escapeHtml(err.message)}
+                </div>`;
+        }
+    }
+
+    function renderTimelineItems(items) {
+        auditTimelineContainer.innerHTML = '';
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'timeline-card';
+
+            const badgeClass = `audit-badge-${item.action.toLowerCase()}`;
+            const diffRows = (item.diffs || []).map(d => {
+                let oldHtml = d.old_value !== null && d.old_value !== undefined 
+                    ? `<span class="diff-del">${escapeHtml(typeof d.old_value === 'object' ? JSON.stringify(d.old_value) : String(d.old_value))}</span>` 
+                    : '';
+                let newHtml = d.new_value !== null && d.new_value !== undefined 
+                    ? `<span class="diff-ins">${escapeHtml(typeof d.new_value === 'object' ? JSON.stringify(d.new_value) : String(d.new_value))}</span>` 
+                    : '';
+                return `
+                    <tr>
+                        <td class="audit-diff-col-name">${escapeHtml(d.field)}</td>
+                        <td class="audit-diff-vals">${oldHtml}${newHtml}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const diffTable = diffRows ? `
+                <table class="audit-diff-table">
+                    <tbody>${diffRows}</tbody>
+                </table>
+            ` : '<div style="font-size:12px; color:var(--text-muted); font-style:italic;">No field diffs</div>';
+
+            card.innerHTML = `
+                <div class="timeline-card-header">
+                    <div class="timeline-meta-left">
+                        <span class="${badgeClass}">${escapeHtml(item.action)}</span>
+                        <span class="audit-row-pill">Row #${escapeHtml(item.record_id)}</span>
+                        <span class="audit-author">by <strong>${escapeHtml(item.changed_by || 'admin')}</strong></span>
+                        <span class="audit-timestamp" title="${escapeHtml(item.created_at)}">⚡ ${escapeHtml(item.time_ago)}</span>
+                    </div>
+                    <button type="button" class="btn-rollback" data-id="${item.id}" data-action="${escapeHtml(item.action)}" data-record="${escapeHtml(item.record_id)}">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                        <span>Rollback</span>
+                    </button>
+                </div>
+                ${diffTable}
+            `;
+
+            const btnRollback = card.querySelector('.btn-rollback');
+            btnRollback?.addEventListener('click', () => {
+                confirmAndRollback(item.id, item.action, item.record_id);
+            });
+
+            auditTimelineContainer.appendChild(card);
+        });
+    }
+
+    async function confirmAndRollback(auditId, action, recordId) {
+        const ok = confirm(`Do you really want to rollback this ${action.toUpperCase()} on row #${recordId}?\nThis will revert the database state.`);
+        if (!ok) return;
+
+        try {
+            const res = await fetch(`${adminPath}/audit/rollback`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ audit_id: auditId })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                if (window.Notif && window.Notif.New) {
+                    window.Notif.New({
+                        title: 'Rollback Successful',
+                        message: data.message || `Reverted ${action} on row #${recordId}`,
+                        type: 'success'
+                    }).show();
+                }
+                loadAuditTimeline(auditRecordFilter?.value.trim() || '');
+                loadTableData();
+            } else {
+                alert(data.error || 'Rollback failed');
+            }
+        } catch (err) {
+            alert('Rollback network error: ' + err.message);
+        }
+    }
+
     search.addEventListener("submit", (e) => {
         e.preventDefault();
         page = 1;  // Reset page on new search
