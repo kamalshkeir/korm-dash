@@ -11,7 +11,8 @@
  */
 export class GlobeExplorer {
     static CDN = 'https://unpkg.com/maplibre-gl@5/dist';
-    static RTL_PLUGIN = 'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js';
+    static RTL_PLUGIN = '/static/admin/js/mapbox-gl-rtl-text.min.js';
+    static RTL_FALLBACK = 'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js';
     static STYLES = {
         dark: 'https://tiles.openfreemap.org/styles/dark',
         light: 'https://tiles.openfreemap.org/styles/liberty',
@@ -69,6 +70,9 @@ export class GlobeExplorer {
             @keyframes lg-me-pulse {
                 0% { transform: scale(.4); opacity: 1; }
                 100% { transform: scale(1.6); opacity: 0; }
+            }
+            .is-moving .lg-me-ring {
+                animation-play-state: paused;
             }
             .lg-controls {
                 position: absolute;
@@ -216,7 +220,22 @@ export class GlobeExplorer {
             js.onload = () => {
                 if (typeof maplibregl.setRTLTextPlugin === 'function') {
                     try {
-                        maplibregl.setRTLTextPlugin(GlobeExplorer.RTL_PLUGIN, null, true);
+                        const status = typeof maplibregl.getRTLTextPluginStatus === 'function'
+                            ? maplibregl.getRTLTextPluginStatus()
+                            : 'unavailable';
+                        if (status === 'unavailable') {
+                            maplibregl.setRTLTextPlugin(
+                                GlobeExplorer.RTL_PLUGIN,
+                                err => {
+                                    if (err) {
+                                        try {
+                                            maplibregl.setRTLTextPlugin(GlobeExplorer.RTL_FALLBACK, null, true);
+                                        } catch (_) { }
+                                    }
+                                },
+                                true
+                            );
+                        }
                     } catch (_) { }
                 }
                 resolve();
@@ -245,8 +264,8 @@ export class GlobeExplorer {
             pitch: this.options.pitch,
             bearing: this.options.bearing,
             maxPitch: 80,
-            pixelRatio: Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2),
-            maxTileCacheSize: isMobile ? 40 : 100,
+            pixelRatio: Math.min(window.devicePixelRatio || 1, isMobile ? 1.25 : 1.5),
+            maxTileCacheSize: isMobile ? 40 : 80,
             boxZoom: false, // Disabling boxZoom frees up Shift+Drag for 3D rotation & tilt
             renderWorldCopies: false,
             crossSourceCollisions: false,
@@ -255,7 +274,7 @@ export class GlobeExplorer {
                 antialias: (window.devicePixelRatio || 1) < 2,
                 powerPreference: 'high-performance'
             },
-            fadeDuration: isMobile ? 0 : 50,
+            fadeDuration: 0,
             dragPan: {
                 linearity: 0.22,
                 maxSpeed: 2200,
@@ -274,6 +293,15 @@ export class GlobeExplorer {
             new maplibregl.NavigationControl({ visualizePitch: true }),
             this.options.navControlPosition || 'bottom-right'
         );
+
+        this.map.on('styleimagemissing', e => {
+            if (!this.map.hasImage(e.id)) {
+                this.map.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) });
+            }
+        });
+
+        this.map.on('movestart', () => { container.classList.add('is-moving'); });
+        this.map.on('moveend', () => { container.classList.remove('is-moving'); });
 
         this._attachInteractions();
 
@@ -317,6 +345,24 @@ export class GlobeExplorer {
         let rotStartY = 0;
         let rotStartBearing = 0;
         let rotStartPitch = 0;
+        let pendingBearing = null;
+        let pendingPitch = null;
+        let rafId = null;
+
+        const scheduleUpdate = () => {
+            if (rafId) return;
+            rafId = requestAnimationFrame(() => {
+                rafId = null;
+                if (pendingBearing !== null) {
+                    this.map.setBearing(pendingBearing);
+                    pendingBearing = null;
+                }
+                if (pendingPitch !== null) {
+                    this.map.setPitch(pendingPitch);
+                    pendingPitch = null;
+                }
+            });
+        };
 
         canvas.addEventListener('mousedown', e => {
             if (e.shiftKey || e.altKey || e.ctrlKey || e.button === 2) {
@@ -332,8 +378,9 @@ export class GlobeExplorer {
                     if (!isCustomRotating) return;
                     const dx = ev.clientX - rotStartX;
                     const dy = ev.clientY - rotStartY;
-                    this.map.setBearing(rotStartBearing + dx * 0.45);
-                    this.map.setPitch(Math.max(0, Math.min(80, rotStartPitch - dy * 0.45)));
+                    pendingBearing = rotStartBearing + dx * 0.45;
+                    pendingPitch = Math.max(0, Math.min(80, rotStartPitch - dy * 0.45));
+                    scheduleUpdate();
                 };
 
                 const onUp = () => {
@@ -352,7 +399,8 @@ export class GlobeExplorer {
                 e.stopImmediatePropagation();
                 e.preventDefault();
                 const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-                this.map.setBearing(this.map.getBearing() + delta * 0.35);
+                pendingBearing = (pendingBearing !== null ? pendingBearing : this.map.getBearing()) + delta * 0.35;
+                scheduleUpdate();
             }
         }, { capture: true, passive: false });
 
@@ -398,14 +446,19 @@ export class GlobeExplorer {
             });
         } catch (_) { }
 
+        let coordRaf = null;
         this.map.on('mousemove', e => {
+            if (coordRaf) return;
             const { lat, lng } = e.lngLat;
-            const zoom = this.map.getZoom().toFixed(1);
-            const pitch = Math.round(this.map.getPitch());
-            const barText = document.getElementById('coord-display-text');
-            if (barText && !this.lastClickedCoords) {
-                barText.textContent = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)} · Zoom: ${zoom} · Pitch: ${pitch}°`;
-            }
+            coordRaf = requestAnimationFrame(() => {
+                coordRaf = null;
+                const zoom = this.map ? this.map.getZoom().toFixed(1) : '0';
+                const pitch = this.map ? Math.round(this.map.getPitch()) : 0;
+                const barText = document.getElementById('coord-display-text');
+                if (barText && !this.lastClickedCoords) {
+                    barText.textContent = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)} · Zoom: ${zoom} · Pitch: ${pitch}°`;
+                }
+            });
         });
     }
 
@@ -493,6 +546,18 @@ export class GlobeExplorer {
             if (this.map.getLayer('explorer-sat-layer')) {
                 this.map.setLayoutProperty('explorer-sat-layer', 'visibility', 'none');
             }
+        }
+
+        // Hide 3D building extrusions in satellite mode to show crisp photographic buildings and real terrain
+        const style = this.map.getStyle();
+        if (style && style.layers) {
+            style.layers.forEach(l => {
+                if (l.type === 'fill-extrusion' || l.id === 'building-3d' || l.id === 'building' || l.id === 'lg-buildings') {
+                    try {
+                        this.map.setLayoutProperty(l.id, 'visibility', this.satEnabled ? 'none' : 'visible');
+                    } catch (_) { }
+                }
+            });
         }
     }
 
